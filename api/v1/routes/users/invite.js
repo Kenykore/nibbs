@@ -6,8 +6,8 @@ const express = require('express');
 const router = express.Router();
 
 // middleware
-const {verifyUser, verifyAdmin} = require('../../../../middlewares/verify_auth');
+const {verifyUser, verifyAdmin, verifyUserInvite} = require('../../../../middlewares/verify_auth');
 
 const UserController = require('../../controllers/user');
-router.post('/invite/complete', verifyUser, UserController.completeInvite);
+router.post('/complete', verifyUserInvite, UserController.completeInvite);
 module.exports = router;

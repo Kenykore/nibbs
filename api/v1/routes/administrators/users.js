@@ -12,10 +12,10 @@ const UserController = require('../../../v1/controllers/user');
 
 router.get('/', verifyAdmin, UserController.fetchAllUser);
 router.get('/search', verifyAdmin, UserController.searchAllUser);
-router.get('/filter', verifyAdmin, UserController.fetchAllUser);
-router.get('/:user_id', verifyAdmin, UserController.fetchSpecificUser);
-router.put('/role/:user_id', verifyAdmin, UserController.updateUserRole);
-router.put('/:user_id', verifyAdmin, UserController.updateUserAdmin);
-router.delete('/:user_id', verifyAdmin, UserController.deleteUser);
+router.get('/filter', verifyAdmin, UserController.filterAllUser);
+router.get('/:userId', verifyAdmin, UserController.fetchSpecificUser);
+router.put('/role/:userId', verifyAdmin, UserController.updateUserRole);
+router.put('/:userId', verifyAdmin, UserController.updateUserAdmin);
+router.delete('/:userId', verifyAdmin, UserController.deleteUser);
 
 module.exports = router;

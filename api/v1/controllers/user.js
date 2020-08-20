@@ -17,10 +17,12 @@ const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../uti
 class UserController {
   /**
      * Invite a user
-     *
+     *@param {Object} req
+     @param {Object} res
+     @param {Function} next
      * @return  {Object}
      */
-  static async inviteUser() {
+  static async inviteUser(req, res, next) {
     try {
       const {error} = validateInvite(req.body);
       if (error) {
@@ -45,17 +47,15 @@ class UserController {
       return next(error);
     }
   }
-  static async completeInvite() {
+  static async completeInvite(req, res, next) {
     try {
       const user=req.userDetails;
       const inviteFound=await Invite.findOne({email: user.email});
-      if (!inviteFound) {
-        return response.sendError({
-          res,
-          message: 'This user has not been invited to mail merge'
-        });
+      let role='adminstrator';
+      if (inviteFound) {
+        role=inviteFound.role;
       }
-      const {error} = validateAcceptInvite({...req.body, role: inviteFound.role, ...user});
+      const {error} = validateAcceptInvite({...req.body, role: role, ...user});
       if (error) {
         return response.sendError({
           res,
@@ -69,11 +69,14 @@ class UserController {
           message: 'Email already exists'
         });
       }
-      const userCreated= await User.create({...req.body, email: user.email, mobile: user.mobile, name: user.name, role: inviteFound.role});
-      await Invite.findByIdAndRemove(inviteFound._id);
+      const userCreated= await User.create({...req.body, email: user.email, mobile: user.mobile, name: user.name, role: role});
+      if (inviteFound) {
+        await Invite.findByIdAndRemove(inviteFound._id);
+      }
       if (userCreated) {
         const accessToken = Tokenizer.signToken({
           ...userCreated.toObject(),
+          userId: userCreated._id,
           verified: true
         });
         return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
@@ -180,13 +183,13 @@ class UserController {
       const userUpdated=await User.findByIdAndUpdate(userDetails._id, update, {new: true}).lean();
       if (userUpdated) {
         const accessToken = Tokenizer.signToken({
-          userId: user_updated._id,
+          userId: userUpdated._id,
           ...userUpdated
         });
         return response.sendSuccess({
           res,
           message: 'Profile update successful',
-          body: {user: user_updated, _token: accessToken}
+          body: {user: userUpdated, _token: accessToken}
         });
       }
       return response.sendError({
@@ -226,7 +229,7 @@ class UserController {
         return response.sendSuccess({
           res,
           message: 'User Profile update successful',
-          body: {user: user_updated}
+          body: {user: userUpdated}
         });
       }
       return response.sendError({
@@ -255,7 +258,7 @@ class UserController {
         return response.sendSuccess({
           res,
           message: 'User role updated successful',
-          body: {user: user_updated}
+          body: {user: userUpdated}
         });
       }
       return response.sendError({
@@ -281,7 +284,7 @@ class UserController {
         return response.sendSuccess({
           res,
           message: 'User deleted successful',
-          body: {user: user_updated}
+          body: {user: userUpdated}
         });
       }
       return response.sendError({

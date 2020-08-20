@@ -8,6 +8,11 @@ const userModel= new mongoose.Schema({
     unique: true,
     required: true
   },
+  username: {
+    type: String,
+    unique: false,
+    required: false
+  },
   mobile: {
     type: String,
     required: false
