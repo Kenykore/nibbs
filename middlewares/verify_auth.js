@@ -29,6 +29,29 @@ const Secure = {
       return next(error);
     }
   },
+  verifyUserInvite(req, res, next) {
+    let token = req.header('Authorization');
+    if (!token) {
+      return response.sendError({res, message: 'Authorization token not found', statusCode: status.UNAUTHORIZED});
+    }
+
+    if (token.startsWith('Bearer ')) {
+      token = token.slice(7, token.length);
+    } else {
+      return response.sendError({res, message: 'Invalid authorization string. Token must start with Bearer', statusCode: status.UNAUTHORIZED});
+    }
+
+    try {
+      const verified = Tokenizer.verifyToken(token);
+      req.userDetails = verified.data;
+      if (!verified) {
+        return response.sendError({res, message: 'Not Authorised. Protected route,token invalid', statusCode: status.UNAUTHORIZED});
+      }
+      return next();
+    } catch (error) {
+      return next(error);
+    }
+  },
   verifyAdmin(req, res, next) {
     let token = req.header('Authorization');
     if (!token) {
