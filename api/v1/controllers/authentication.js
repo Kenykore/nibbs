@@ -30,7 +30,7 @@ class AuthenticationController {
         });
       }
       const options = {
-        method: 'GET',
+        method: 'POST',
         uri: `https://vi-singleauth.nibss-plc.com/singleauth/login`,
         headers: {
           Authorization: 'Basic ' + new Buffer(req.body.username + ':' + req.body.password).toString('base64')
