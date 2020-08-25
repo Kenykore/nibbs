@@ -31,13 +31,14 @@ class AuthenticationController {
       }
       const options = {
         method: 'GET',
-        uri: `https://vi-singleauth.nibss-plc.com/singleauth/login`,
+        uri: `http://vi-singleauth.nibss-plc.com/singleauth/login`,
         headers: {
-          Authorization: 'Basic ' + new Buffer(req.body.username + ':' + req.body.password).toString('base64')
+          Authorization: 'Basic ' + Buffer.from(req.body.username + ':' + req.body.password).toString('base64')
         },
         json: true // Automatically stringifies the body to JSON
       };
-      //  const userDetails = await request(options);
+      const userDetailstwo = await request(options);
+      console.log(userDetailstwo, 'user details from SSO');
       const userDetails={
         data: {
           email: req.body.email || '',
