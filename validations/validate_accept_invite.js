@@ -6,7 +6,6 @@ const Validate = (params) => {
     'email': Joi.string().email().label('User has an invalid email address').required(),
     'role': Joi.string().required(),
     'mobile': Joi.string().optional(),
-    'signatures': Joi.array().required()
   });
   return schema.validate(params, {
     allowUnknown: true

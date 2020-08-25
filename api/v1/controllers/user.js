@@ -5,6 +5,7 @@ const request = require('request-promise');
 const response = require('../../../utilities/response');
 const User=require('../../../models/user');
 const Invite=require('../../../models/invite');
+const cloudinary = require('cloudinary').v2;
 const Tokenizer = require('../../../utilities/tokeniztion');
 const sendEmail = require('../../../services/Notification');
 const validateInvite = require('../../../validations/validate_invite');
@@ -49,13 +50,17 @@ class UserController {
   }
   static async completeInvite(req, res, next) {
     try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return response.sendError({res, message: 'No signatures were uploaded'});
+      }
+      console.log(req.files, 'files to upload');
       const user=req.userDetails;
       const inviteFound=await Invite.findOne({email: user.email});
-      let role='adminstrator';
+      let role='user';
       if (inviteFound) {
         role=inviteFound.role;
       }
-      const {error} = validateAcceptInvite({...req.body, role: role, ...user});
+      const {error} = validateAcceptInvite({role: role, ...user});
       if (error) {
         return response.sendError({
           res,
@@ -69,7 +74,32 @@ class UserController {
           message: 'Email already exists'
         });
       }
-      const userCreated= await User.create({...req.body, email: user.email, mobile: user.mobile, name: user.name, role: role});
+      const files=[];
+      for (const f of Object.keys(req.files)) {
+        const allFiles=req.files[f];
+
+        console.log(allFiles, 'file');
+        if (Array.isArray(allFiles)) {
+          for (const ff of allFiles) {
+            const file=await uploadFile(ff, user.email);
+            console.log(file, 'file uploaded');
+            if (!file) {
+              continue;
+            }
+            files.push(file.path);
+          }
+        }
+        const file=await uploadFile(allFiles, user.email);
+        console.log(file, 'file uploaded');
+        if (!file) {
+          continue;
+        }
+        files.push(file.path);
+      }
+      if (files.length===0) {
+        return response.sendError({res, message: 'Could not upload signature'});
+      }
+      const userCreated= await User.create({signatures: files, email: user.email, mobile: user.mobile, name: user.name, role: role});
       if (inviteFound) {
         await Invite.findByIdAndRemove(inviteFound._id);
       }
@@ -82,6 +112,55 @@ class UserController {
         return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
       }
       return response.sendError({res, message: 'Unable to create User'});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+  static async addSignature(req, res, next) {
+    try {
+      if (!req.files || Object.keys(req.files).length === 0) {
+        return response.sendError({res, message: 'No signatures were uploaded'});
+      }
+      console.log(req.files, 'files to upload');
+      const user=req.userDetails;
+      const userFound=await User.findById(user.userId);
+      const files=[];
+      for (const f of Object.keys(req.files)) {
+        const allFiles=req.files[f];
+
+        console.log(allFiles, 'file');
+        if (Array.isArray(allFiles)) {
+          for (const ff of allFiles) {
+            const file=await uploadFile(ff, user.email);
+            console.log(file, 'file uploaded');
+            if (!file) {
+              continue;
+            }
+            files.push(file.path);
+          }
+        }
+        const file=await uploadFile(allFiles, user.email);
+        console.log(file, 'file uploaded');
+        if (!file) {
+          continue;
+        }
+        files.push(file.path);
+      }
+      if (files.length===0) {
+        return response.sendError({res, message: 'Could not upload signature'});
+      }
+      const signatures=files.concat(userFound.signatures);
+      const userUpdated= await User.findByIdAndUpdate(user.userId, {signatures: signatures}, {new: true});
+      if (userUpdated) {
+        const accessToken = Tokenizer.signToken({
+          ...userUpdated.toObject(),
+          userId: userUpdated._id,
+          verified: true
+        });
+        return response.sendSuccess({res, message: 'User signature added Successfully', body: {data: userUpdated, _token: accessToken}});
+      }
+      return response.sendError({res, message: 'Unable to add User Signature'});
     } catch (error) {
       console.log(error);
       return next(error);
@@ -179,7 +258,7 @@ class UserController {
           }
         }
       }
-
+      console.log(userDetails._id, 'user id in update');
       const userUpdated=await User.findByIdAndUpdate(userDetails._id, update, {new: true}).lean();
       if (userUpdated) {
         const accessToken = Tokenizer.signToken({
@@ -289,7 +368,7 @@ class UserController {
       }
       return response.sendError({
         res,
-        message: 'Unable to delete user role,try again'
+        message: 'Unable to delete user,try again'
       });
     } catch (error) {
       console.log(error);
@@ -397,6 +476,30 @@ class UserController {
       console.log(error);
       return next(error);
     }
+  }
+}
+/**
+ * Function to upload files and store on server
+ *
+ * @param   {File}  f  file objct
+ * @param   {String}  userId  user id
+ *
+ * @return  {Promise<Boolean | Object>}
+ */
+async function uploadFile(f, userId) {
+  try {
+    console.log(f, 'file in upload');
+    const publicId = `signatures/${userId}/${f.name}`;
+    const fileUploaded=await
+    cloudinary.uploader.upload(f.tempFilePath, {
+      resource_type: 'image',
+      public_id: publicId,
+      secure: true,
+    });
+    return {file: f, path: fileUploaded.secure_url};
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 }
 module.exports=UserController;

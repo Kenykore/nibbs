@@ -37,22 +37,14 @@ class AuthenticationController {
         },
         json: true // Automatically stringifies the body to JSON
       };
-      //  const userDetails = await request(options);
-      const userDetails={
-        data: {
-          email: req.body.email || '',
-          username: req.body.username,
-          name: 'Oluwakorede',
-          mobile: '+2348133699506'
-        }
-      };
+      const userDetails = await request(options);
       console.log(userDetails, 'user details');
       if (!userDetails.data) {
         return response.sendError({res, message: userDetails.meta.message});
       }
       let verified=false;
       const data={user: userDetails.data};
-      const userExist = await User.findOne({$or: [{username: data.user.username}, {email: data.user.email}]});
+      const userExist = await User.findOne({$or: [{username: data.user.username}, {email: data.user.email}]}).lean();
       console.log(userExist, 'uset exist');
       if (userExist) {
         verified=true;
@@ -64,6 +56,7 @@ class AuthenticationController {
         userId: data.user._id || undefined,
         verified: verified
       });
+      console.log('gotten here');
       return response.sendSuccess({
         res,
         message: 'Login successful',
