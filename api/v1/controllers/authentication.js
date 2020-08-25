@@ -31,7 +31,7 @@ class AuthenticationController {
       }
       const options = {
         method: 'POST',
-        uri: `https://vi-singleauth.nibss-plc.com/singleauth/login`,
+        uri: `http://vi-singleauth.nibss-plc.com/singleauth/login`,
         headers: {
           Authorization: 'Basic ' + new Buffer(req.body.username + ':' + req.body.password).toString('base64')
         },
