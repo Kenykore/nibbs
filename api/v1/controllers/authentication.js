@@ -30,15 +30,23 @@ class AuthenticationController {
         });
       }
       const options = {
-        method: 'POST',
-        uri: `http://vi-singleauth.nibss-plc.com/singleauth/login`,
+        method: 'GET',
+        uri: `https://vi-singleauth.nibss-plc.com/singleauth/login`,
         headers: {
           Authorization: 'Basic ' + new Buffer(req.body.username + ':' + req.body.password).toString('base64')
         },
         json: true // Automatically stringifies the body to JSON
       };
-      const userDetails = await request(options);
-      console.log(userDetails, 'user details');
+      //  const userDetails = await request(options);
+      const userDetails={
+        data: {
+          email: req.body.email || '',
+          username: req.body.username,
+          name: 'Oluwakorede',
+          mobile: '+2348133699506'
+        }
+      };
+      console.log(userDetails.data, 'user details');
       if (!userDetails.data) {
         return response.sendError({res, message: userDetails.meta.message});
       }
