@@ -35,11 +35,11 @@ class UserController {
       const inviteData=[];
       for (const d of req.body.data) {
         // send email
-        const userExist = await Invite.findOne({email: d.email});
+        const userExist = await User.findOne({email: d.email});
         if (userExist) {
           continue;
         }
-        const invite= await Invite.create(d);
+        const invite= await User.create(d);
         inviteData.push(invite);
       }
       return response.sendSuccess({res, message: 'Invite sent Successfully', body: {data: inviteData}});
@@ -55,7 +55,7 @@ class UserController {
       }
       console.log(req.files, 'files to upload');
       const user=req.userDetails;
-      const inviteFound=await Invite.findOne({email: user.email});
+      const inviteFound=await User.findOne({email: user.email, status: 'inactive'});
       let role='user';
       if (inviteFound) {
         role=inviteFound.role;
@@ -67,11 +67,11 @@ class UserController {
           message: error.details[0].message
         });
       }
-      const userExist = await User.findOne({email: user.email});
+      const userExist = await User.findOne({email: user.email, status: 'active'});
       if (userExist) {
         return response.sendError({
           res,
-          message: 'Email already exists'
+          message: 'Invite Already completed'
         });
       }
       const files=[];
@@ -99,10 +99,7 @@ class UserController {
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
-      const userCreated= await User.create({signatures: files, email: user.email, mobile: user.mobile, name: user.name, role: role});
-      if (inviteFound) {
-        await Invite.findByIdAndRemove(inviteFound._id);
-      }
+      const userCreated= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
       if (userCreated) {
         const accessToken = Tokenizer.signToken({
           ...userCreated.toObject(),
