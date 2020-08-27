@@ -13,7 +13,7 @@ const inviteModel= new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'adminstrator'],
+    enum: ['user', 'administrator'],
     default: 'user'
   }
 }, {

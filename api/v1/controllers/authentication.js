@@ -37,8 +37,8 @@ class AuthenticationController {
         },
         json: true // Automatically stringifies the body to JSON
       };
-      const userDetailstwo = await request(options);
-      console.log(userDetailstwo, 'user details from SSO');
+      // const userDetailstwo = await request(options);
+      // console.log(userDetailstwo, 'user details from SSO');
       const userDetails={
         data: {
           email: req.body.email || '',
