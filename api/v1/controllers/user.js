@@ -99,7 +99,10 @@ class UserController {
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
+      console.log(user, 'user');
+
       const userCreated= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
+      console.log(userCreated, 'user created');
       if (userCreated) {
         const accessToken = Tokenizer.signToken({
           ...userCreated.toObject(),
