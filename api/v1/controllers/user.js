@@ -100,9 +100,20 @@ class UserController {
         return response.sendError({res, message: 'Could not upload signature'});
       }
       console.log(user, 'user');
-
-      const userCreated= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
-      console.log(userCreated, 'user created');
+      if (inviteFound) {
+        const userCreated= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
+        console.log(userCreated, 'user created');
+        if (userCreated) {
+          const accessToken = Tokenizer.signToken({
+            ...userCreated.toObject(),
+            userId: userCreated._id,
+            verified: true
+          });
+          return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
+        }
+        return response.sendError({res, message: 'Unable to create User'});
+      }
+      const userCreated= await User.create({...user, signatures: files, status: 'active'});
       if (userCreated) {
         const accessToken = Tokenizer.signToken({
           ...userCreated.toObject(),
@@ -493,7 +504,7 @@ async function uploadFile(f, userId) {
     const fileUploaded=await
     cloudinary.uploader.upload(f.tempFilePath, {
       resource_type: 'image',
-      format: f.type,
+      format: f.mimetype.split('/')[1],
       public_id: publicId,
       secure: true,
     });
