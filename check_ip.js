@@ -8,7 +8,7 @@ async function checkip() {
   try {
     const options = {
       method: 'GET',
-      uri: `https://nibss-mail-merge.natterbase.com`,
+      uri: `https://power-case.natterbase.com`,
       json: true // Automatically stringifies the body to JSON
     };
     const userDetailstwo = await request(options);

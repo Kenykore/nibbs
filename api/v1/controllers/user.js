@@ -493,6 +493,7 @@ async function uploadFile(f, userId) {
     const fileUploaded=await
     cloudinary.uploader.upload(f.tempFilePath, {
       resource_type: 'image',
+      format: f.type,
       public_id: publicId,
       secure: true,
     });
