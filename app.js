@@ -44,7 +44,9 @@ app.use('/admin/users', adminUserRouter);
 app.use('/users/invite', userInviteRouter);
 app.use('/admin/invite', adminInviteRouter);
 app.use('/admin/recipient', adminRecipientRouter);
-
+app.get('/', (req, res, next)=>{
+  return res.send(`Your ip address is ${req.ip} and ${req.ips}`);
+});
 const mongoose= require('mongoose');
 const databaseConfig = require('./config/index.js');
 // configuration
