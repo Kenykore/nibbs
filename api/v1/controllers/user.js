@@ -378,8 +378,8 @@ class UserController {
       const currentPage = parseInt(req.query.page) || 0;
       const skip = currentPage * usersPerPage;
 
-      const totalusers = await Invite.find({}).countDocuments();
-      const users = await Invite.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
+      const totalusers = await User.find({status: 'inactive'}).countDocuments();
+      const users = await User.find({status: 'inactive'}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
       const totalPages = Math.ceil(totalusers / usersPerPage);
 
       if (users && users.length) {
