@@ -360,6 +360,29 @@ class UserController {
       return next(error);
     }
   }
+  static async deleteUserSignature(req, res, next) {
+    try {
+      const user= req.userDetails;
+      if (!req.body.signature) {
+        return response.sendError({res, message: 'Signature is missing in request body'});
+      }
+      const userUpdated=await User.findByIdAndUpdate(user.userId, {$pull: {signatures: req.body.signature}}, {new: true}).lean();
+      if (userUpdated) {
+        return response.sendSuccess({
+          res,
+          message: 'User signature deleted successful',
+          body: {user: userUpdated}
+        });
+      }
+      return response.sendError({
+        res,
+        message: 'Unable to delete user signature,try again'
+      });
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
   static async deleteUser(req, res, next) {
     try {
       if (!req.params.userId) {
