@@ -13,5 +13,5 @@ const UserController = require('../../../v1/controllers/user');
 router.get('/', verifyUser, UserController.fetchSelf);
 router.put('/', verifyUser, UserController.updateUser);
 router.post('/add/signature', verifyUser, UserController.addSignature);
-
+router.post('/remove/signature', verifyUser, UserController.deleteUserSignature);
 module.exports = router;
