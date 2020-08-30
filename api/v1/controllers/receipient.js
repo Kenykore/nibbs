@@ -48,6 +48,39 @@ class ReceipientController {
      @param {Function} next
      * @return  {Object}
      */
+  static async createRecipientMultiple(req, res, next) {
+    try {
+      if (!req.body.data) {
+        return response.sendError({
+          res,
+          message: 'Data array of bulk recipient is missing'
+        });
+      }
+      const recipients=[];
+      for (const d of req.body.data) {
+        const recipientExist=await Recipient.findOne({email: d.email});
+        if (recipientExist) {
+          continue;
+        }
+        const recipientsAdded= await Recipient.create(d);
+        recipients.push(recipientsAdded);
+      }
+      if (recipients && recipients.length>0) {
+        return response.sendSuccess({res, message: 'Recipient added Successfully', body: {data: recipients}});
+      }
+      return response.sendError({res, message: 'Unable to add recipients'});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+  /**
+     * Create tag
+     *@param {Object} req
+     @param {Object} res
+     @param {Function} next
+     * @return  {Object}
+     */
   static async createTag(req, res, next) {
     try {
       if (!req.body.name) {
@@ -65,6 +98,58 @@ class ReceipientController {
         return response.sendSuccess({res, message: 'Tag added Successfully', body: {data: tagAdded}});
       }
       return response.sendError({res, message: 'Unable to add tag'});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+  static async createMulipleTag(req, res, next) {
+    try {
+      if (!req.body.data) {
+        return response.sendError({
+          res,
+          message: 'Tag data is required'
+        });
+      }
+      const tags=[];
+      for (const d of req.body.data) {
+        const tagFound=await Tag.findOne({name: d});
+        if (tagFound) {
+          continue;
+        }
+        const tagAdded= await Tag.create({name: d});
+        tags.push(tagAdded);
+      }
+      if (tags && tags.length>0) {
+        return response.sendSuccess({res, message: 'Tag added Successfully', body: {data: tags}});
+      }
+      return response.sendError({res, message: 'Unable to add any tag'});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+  static async deleteTag(req, res, next) {
+    try {
+      if (!req.params.tagId) {
+        return response.sendError({res, message: 'Tag id is missing in request parameters'});
+      }
+
+      if (!mongoose.Types.ObjectId.isValid(req.params.tagId)) {
+        return response.sendError({res, message: 'Invalid Tag id'});
+      }
+      const tagRemoved=await Tag.findByIdAndRemove(req.params.tagId, {new: true}).lean();
+      if (tagRemoved) {
+        return response.sendSuccess({
+          res,
+          message: 'Tag deleted successful',
+          body: {tag: tagRemoved}
+        });
+      }
+      return response.sendError({
+        res,
+        message: 'Unable to delete tag,try again'
+      });
     } catch (error) {
       console.log(error);
       return next(error);
