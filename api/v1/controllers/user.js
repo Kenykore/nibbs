@@ -12,6 +12,7 @@ const validateInvite = require('../../../validations/validate_invite');
 const validateAcceptInvite = require('../../../validations/validate_accept_invite');
 
 const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
+const SendEmail = require('../../../services/Notification');
 /**
  * User class
  */
@@ -40,6 +41,17 @@ class UserController {
           continue;
         }
         const invite= await User.create(d);
+        await sendEmail({
+          to: d.email,
+          from: 'nibbs@gmail.com',
+          subject: 'Mail Merge by NIBSS Invite',
+          template_name: 'invite',
+          data: {
+            name: d.name,
+            role: d.role,
+            url: 'https://nibss-mailmerge.netlify.app'
+          }
+        });
         inviteData.push(invite);
       }
       return response.sendSuccess({res, message: 'Invite sent Successfully', body: {data: inviteData}});
