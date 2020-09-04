@@ -43,7 +43,7 @@ class UserController {
         const invite= await User.create(d);
         await sendEmail({
           to: d.email,
-          from: 'nibbs@gmail.com',
+          from: 'e-signaturenotification@nibss-plc.com.ng',
           subject: 'Mail Merge by NIBSS Invite',
           template_name: 'invite',
           data: {
