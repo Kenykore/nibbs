@@ -7,8 +7,8 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
   try {
     console.log('sending mail started');
     const transportOptions = {
-      host: 'smtp.gmail.com',
-      port: 465,
+      host: 'smtp.office365.com',
+      port: 587,
       auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD
@@ -36,10 +36,10 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     const emailPayload = {
       from: {
         name: details.from || 'Nibbs',
-        address: 'powercube.powercase@gmail.com'
+        address: 'e-signaturenotification@nibss-plc.com.ng'
       },
       to: details.to,
-      replyTo: details.replyTo || 'powercube.powercase@gmail.com',
+      replyTo: details.replyTo || 'e-signaturenotification@nibss-plc.com.ng',
       bcc: details.bcc === undefined ?
         ['moshood.korede@hotmail.com', 'kenykore@gmail.com'] :
         ['moshood.korede@hotmail.com', 'martha@natterbase.com', ...details.bcc],
