@@ -10,10 +10,10 @@ const {verifyAdmin} = require('../../../../middlewares/verify_auth');
 
 const UserController = require('../../../v1/controllers/user');
 
-router.get('/', verifyAdmin, UserController.fetchAllUser);
-router.get('/search', verifyAdmin, UserController.searchAllUser);
-router.get('/filter', verifyAdmin, UserController.filterAllUser);
-router.get('/:userId', verifyAdmin, UserController.fetchSpecificUser);
+router.get('/', UserController.fetchAllUser);
+router.get('/search', UserController.searchAllUser);
+router.get('/filter', UserController.filterAllUser);
+router.get('/:userId', UserController.fetchSpecificUser);
 router.put('/role/:userId', verifyAdmin, UserController.updateUserRole);
 router.put('/:userId', verifyAdmin, UserController.updateUserAdmin);
 router.delete('/:userId', verifyAdmin, UserController.deleteUser);
