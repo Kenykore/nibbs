@@ -158,6 +158,7 @@ class DocumentController {
         });
         if (checkSignatureAllSigned(documentUpdated.signatories)) {
           console.log('ready to send doc');
+          await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
         //   for (const s of req.body.recipients) {
         //     await sendEmail({
         //       to: s.email,
@@ -186,16 +187,29 @@ class DocumentController {
   static async fetchAllDocument(req, res, next) {
     try {
       const documentsPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 0;
-      const skip = currentPage * documentsPerPage;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * documentsPerPage;
+      const searchObject={
 
-      const totaldocuments = await Document.find({}).countDocuments();
-      const documents = await Document.find({}).sort({_id: 'desc'}).skip(skip).limit(documentsPerPage);
+      };
+      if (req.query.filter) {
+        searchObject.signed=req.query.filter;
+      }
+      const totaldocuments = await Document.find({...searchObject}).countDocuments();
+      const signedDocument=await Document.countDocuments({signed: true});
+      const pendingDocument=await Document.countDocuments({signed: false});
+      const archivedDocument=await Document.countDocuments({deleted: true});
+      const documents = await Document.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(documentsPerPage);
       const totalPages = Math.ceil(totaldocuments / documentsPerPage);
 
       if (documents && documents.length) {
         const responseContent = {
           'total_documents': totaldocuments,
+          'document_stats': {
+            'signed_document': signedDocument,
+            'archived_document': archivedDocument,
+            'pending_document': pendingDocument
+          },
           'pagination': {
             'current': currentPage,
             'number_of_pages': totalPages,
