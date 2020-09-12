@@ -189,17 +189,11 @@ class DocumentController {
       const documentsPerPage = parseInt(req.query.limit) || 10;
       const currentPage = parseInt(req.query.page) || 1;
       const skip = (currentPage-1) * documentsPerPage;
-      const searchObject={
-
-      };
-      if (req.query.filter) {
-        searchObject.signed=req.query.filter;
-      }
-      const totaldocuments = await Document.find({...searchObject}).countDocuments();
+      const totaldocuments = await Document.find({...req.query}).countDocuments();
       const signedDocument=await Document.countDocuments({signed: true});
       const pendingDocument=await Document.countDocuments({signed: false});
       const archivedDocument=await Document.countDocuments({deleted: true});
-      const documents = await Document.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(documentsPerPage);
+      const documents = await Document.find({...req.query}).sort({_id: 'desc'}).skip(skip).limit(documentsPerPage);
       const totalPages = Math.ceil(totaldocuments / documentsPerPage);
 
       if (documents && documents.length) {
@@ -220,7 +214,7 @@ class DocumentController {
         };
         return response.sendSuccess({res, message: 'Documents  found', body: responseContent});
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      return response.sendError({res, message: 'No Document found', statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);

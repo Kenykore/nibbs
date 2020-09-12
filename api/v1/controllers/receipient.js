@@ -187,8 +187,11 @@ class ReceipientController {
 
       };
       if (req.query.filter) {
-        searchObject.tags=JSON.parse(req.query.filter);
+        searchObject.tag=
+          {$in: JSON.parse(req.query.filter)};
       }
+      console.log(searchObject, 'search');
+
       const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
       const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
       const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
@@ -221,18 +224,21 @@ class ReceipientController {
 
       };
       if (req.query.filter) {
-        searchObject.tags=JSON.parse(req.query.filter);
+        searchObject.tag= {$in: JSON.parse(req.query.filter)};
       }
+      console.log(searchObject, 'search');
       const search = req.query.search;
       if (!search) {
         return response.sendError({res, message: 'Search query string is required'});
       }
       const totalrecipients = await Recipient.find({...searchObject, $or: [
         {name: new RegExp(search, 'i')},
-        {mobile: new RegExp(search, 'i')},
         {email: new RegExp(search, 'i')},
       ]}).countDocuments();
-      const recipients = await Recipient.find({tags: JSON.parse(req.query.filter)}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
+      const recipients = await Recipient.find({...searchObject, $or: [
+        {name: new RegExp(search, 'i')},
+        {email: new RegExp(search, 'i')},
+      ]}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
       const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
 
       if (recipients && recipients.length) {
