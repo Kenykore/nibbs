@@ -10,6 +10,7 @@ const {verifyUser, verifyAdmin} = require('../../../../middlewares/verify_auth')
 
 const RecipientController = require('../../controllers/receipient');
 router.get('/', RecipientController.fetchAll);
+router.get('/search', RecipientController.searchAll);
 router.post('/', verifyAdmin, RecipientController.create);
 router.post('/multiple', verifyAdmin, RecipientController.createRecipientMultiple);
 router.post('/tag', verifyAdmin, RecipientController.createTag);

@@ -4,6 +4,14 @@ const moment = require('moment');
 const documentModel= new mongoose.Schema({
   ownerId: String,
   publicId: String,
+  signed: {
+    type: Boolean,
+    default: false
+  },
+  deleted: {
+    type: Boolean,
+    default: false
+  },
   file: {
     type: String,
     required: true

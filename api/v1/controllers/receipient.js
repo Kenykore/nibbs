@@ -181,11 +181,58 @@ class ReceipientController {
   static async fetchAll(req, res, next) {
     try {
       const recipientsPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 0;
-      const skip = currentPage * recipientsPerPage;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * recipientsPerPage;
+      const searchObject={
 
-      const totalrecipients = await Recipient.find({}).countDocuments();
-      const recipients = await Recipient.find({}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
+      };
+      if (req.query.filter) {
+        searchObject.tags=JSON.parse(req.query.filter);
+      }
+      const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
+      const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
+      const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
+
+      if (recipients && recipients.length) {
+        const responseContent = {
+          'total_recipientss': totalrecipients,
+          'pagination': {
+            'current': currentPage,
+            'number_of_pages': totalPages,
+            'perPage': recipientsPerPage,
+            'next': currentPage === totalPages ? currentPage : currentPage + 1
+          },
+          'data': recipients
+        };
+        return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
+      }
+      return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+  static async searchAll(req, res, next) {
+    try {
+      const recipientsPerPage = parseInt(req.query.limit) || 10;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * recipientsPerPage;
+      const searchObject={
+
+      };
+      if (req.query.filter) {
+        searchObject.tags=JSON.parse(req.query.filter);
+      }
+      const search = req.query.search;
+      if (!search) {
+        return response.sendError({res, message: 'Search query string is required'});
+      }
+      const totalrecipients = await Recipient.find({...searchObject, $or: [
+        {name: new RegExp(search, 'i')},
+        {mobile: new RegExp(search, 'i')},
+        {email: new RegExp(search, 'i')},
+      ]}).countDocuments();
+      const recipients = await Recipient.find({tags: JSON.parse(req.query.filter)}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
       const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
 
       if (recipients && recipients.length) {

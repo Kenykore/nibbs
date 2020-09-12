@@ -192,8 +192,8 @@ class UserController {
   static async fetchAllUser(req, res, next) {
     try {
       const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 0;
-      const skip = currentPage * usersPerPage;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * usersPerPage;
 
       const totalusers = await User.find({}).countDocuments();
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
@@ -424,8 +424,8 @@ class UserController {
   static async fetchInvitedUser(req, res, next) {
     try {
       const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 0;
-      const skip = currentPage * usersPerPage;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * usersPerPage;
 
       const totalusers = await User.find({status: 'inactive'}).countDocuments();
       const users = await User.find({status: 'inactive'}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
@@ -453,8 +453,8 @@ class UserController {
   static async searchAllUser(req, res, next) {
     try {
       const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 0;
-      const skip = currentPage * usersPerPage;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * usersPerPage;
       const search = req.query.search;
       const totalusers = await User.find({
         $or: [
@@ -493,8 +493,8 @@ class UserController {
   static async filterAllUser(req, res, next) {
     try {
       const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 0;
-      const skip = currentPage * usersPerPage;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * usersPerPage;
       delete req.query.page;
       delete req.query.limit;
       const totalusers = await User.find({
