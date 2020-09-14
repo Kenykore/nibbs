@@ -116,69 +116,146 @@ class DocumentController {
           message: 'You are not a signatory to this document'
         });
       }
-      const existingPdf =await fetch(documentToSign.file);
-      const signatureImage = await fetch(req.body.signature);
-      const existingPdfBytes=await existingPdf.buffer();
-      const signatureImageBytes=await signatureImage.buffer();
-      const pdfDoc = await PDFDocument.load(existingPdfBytes);
-      console.log(pdfDoc, 'pdf');
-      const pngImage = await pdfDoc.embedPng(signatureImageBytes);
-      const pngDims = pngImage.scale(0.5);
-      // Add a blank page to the document
-      const page = pdfDoc.getPage(Number(signatureFound.page));
-      page.drawImage(pngImage, {
-        x: signatureFound.x_coordinate,
-        y: signatureFound.y_coordinate,
-        width: pngDims.width,
-        height: pngDims.height,
-      });
-      const pdfBytes = await pdfDoc.save();
-      console.log('uploading file');
-      const id='tempdoc.pdf';
-      const fileSaved=await saveFile(pdfBytes, id);
-      console.log(fileSaved, 'file saved');
-      const file=await uploadSignedDoc(id, documentToSign.publicId);
-      console.log(file, 'file upload response');
-      if (!file) {
+      const fileTypeArray=documentToSign.file.split('.');
+      console.log(fileTypeArray, 'file type');
+      const imgFile=['jpg', 'png', 'jpeg', 'svg'];
+      const docFile=['pdf'];
+      const fileType=fileTypeArray[fileTypeArray.length-1];
+      console.log(fileType, 'file type');
+      if (!imgFile.includes(fileType)) {
+        const existingPdf =await fetch(documentToSign.file);
+        const signatureImage = await fetch(req.body.signature);
+        const existingPdfBytes=await existingPdf.buffer();
+        const signatureImageBytes=await signatureImage.buffer();
+        const pdfDoc = await PDFDocument.load(existingPdfBytes);
+        console.log(pdfDoc, 'pdf');
+        const pngImage = await pdfDoc.embedPng(signatureImageBytes);
+        const pngDims = pngImage.scale(0.5);
+        // Add a blank page to the document
+        const page = pdfDoc.getPage(Number(signatureFound.page));
+        page.drawImage(pngImage, {
+          x: signatureFound.x_coordinate,
+          y: signatureFound.y_coordinate,
+          width: pngDims.width,
+          height: pngDims.height,
+        });
+        const pdfBytes = await pdfDoc.save();
+        console.log('uploading file');
+        const id='tempdoc.pdf';
+        const fileSaved=await saveFile(pdfBytes, id);
+        console.log(fileSaved, 'file saved');
+        const file=await uploadSignedDoc(id, documentToSign.publicId);
+        console.log(file, 'file upload response');
+        if (!file) {
+          return response.sendError({
+            res,
+            message: 'Unable to sign document'
+          });
+        }
+        const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
+          'signatories.$.signature': req.body.signature,
+          'signatories.$.signed': true,
+          'file': file.path
+        }, {new: true});
+        if (documentUpdated) {
+          await DocumentLog.create({
+            log: `${user.name} signed document`,
+            ownerId: user.userId,
+            documentId: documentUpdated._id
+          });
+          if (checkSignatureAllSigned(documentUpdated.signatories)) {
+            console.log('ready to send doc');
+            await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
+          //   for (const s of req.body.recipients) {
+          //     await sendEmail({
+          //       to: s.email,
+          //       from: 'e-signaturenotification@nibss-plc.com.ng',
+          //       subject: 'Signature Required on Mail Merge NIBSS',
+          //       template_name: 'invite_to_sign',
+          //       data: {
+          //         name: s.name,
+          //         document: documentUpdated.documentTitle,
+          //         url: 'https://nibss-mailmerge.netlify.app'
+          //       }
+          //     });
+          //   }
+          }
+          return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
+        }
+        return response.sendError({
+          res,
+          message: 'Unable to sign document'
+        });
+      } else {
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([550, 750]);
+        const signatureImage = await fetch(req.body.signature);
+        const pdfImage=await fetch(documentToSign.file);
+        const signatureImageBytes=await signatureImage.buffer();
+        const pdfImageBuffer=await pdfImage.buffer();
+        const pdfImageEmbed = await pdfDoc.embedPng(pdfImageBuffer);
+        const pngImage = await pdfDoc.embedPng(signatureImageBytes);
+        const pngDims = pngImage.scale(0.5);
+        page.drawImage(pdfImageEmbed, {
+          x: 0,
+          y: 0,
+          width: page.getWidth(),
+          height: page.getHeight(),
+        });
+        page.drawImage(pngImage, {
+          x: signatureFound.x_coordinate,
+          y: signatureFound.y_coordinate,
+          width: pngDims.width,
+          height: pngDims.height,
+        });
+        const pdfBytes = await pdfDoc.save();
+        console.log('uploading file');
+        const id='tempdoc.pdf';
+        const fileSaved=await saveFile(pdfBytes, id);
+        console.log(fileSaved, 'file saved');
+        const file=await uploadSignedDoc(id, documentToSign.publicId);
+        console.log(file, 'file upload response');
+        if (!file) {
+          return response.sendError({
+            res,
+            message: 'Unable to sign document'
+          });
+        }
+        const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
+          'signatories.$.signature': req.body.signature,
+          'signatories.$.signed': true,
+          'file': file.path
+        }, {new: true});
+        if (documentUpdated) {
+          await DocumentLog.create({
+            log: `${user.name} signed document`,
+            ownerId: user.userId,
+            documentId: documentUpdated._id
+          });
+          if (checkSignatureAllSigned(documentUpdated.signatories)) {
+            console.log('ready to send doc');
+            await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
+          //   for (const s of req.body.recipients) {
+          //     await sendEmail({
+          //       to: s.email,
+          //       from: 'e-signaturenotification@nibss-plc.com.ng',
+          //       subject: 'Signature Required on Mail Merge NIBSS',
+          //       template_name: 'invite_to_sign',
+          //       data: {
+          //         name: s.name,
+          //         document: documentUpdated.documentTitle,
+          //         url: 'https://nibss-mailmerge.netlify.app'
+          //       }
+          //     });
+          //   }
+          }
+          return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
+        }
         return response.sendError({
           res,
           message: 'Unable to sign document'
         });
       }
-      const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
-        'signatories.$.signature': req.body.signature,
-        'signatories.$.signed': true,
-        'file': file.path
-      }, {new: true});
-      if (documentUpdated) {
-        await DocumentLog.create({
-          log: `${user.name} signed document`,
-          ownerId: user.userId,
-          documentId: documentUpdated._id
-        });
-        if (checkSignatureAllSigned(documentUpdated.signatories)) {
-          console.log('ready to send doc');
-          await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
-        //   for (const s of req.body.recipients) {
-        //     await sendEmail({
-        //       to: s.email,
-        //       from: 'e-signaturenotification@nibss-plc.com.ng',
-        //       subject: 'Signature Required on Mail Merge NIBSS',
-        //       template_name: 'invite_to_sign',
-        //       data: {
-        //         name: s.name,
-        //         document: documentUpdated.documentTitle,
-        //         url: 'https://nibss-mailmerge.netlify.app'
-        //       }
-        //     });
-        //   }
-        }
-        return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
-      }
-      return response.sendError({
-        res,
-        message: 'Unable to sign document'
-      });
     } catch (error) {
       console.log(error);
       return next(error);
@@ -263,6 +340,7 @@ async function uploadFile(f, userId) {
     const fileUploaded=await
     cloudinary.uploader.upload(f.tempFilePath, {
       format: f.mimetype.split('/')[1],
+      resource_type: 'auto',
       public_id: publicId,
       secure: true,
     });
