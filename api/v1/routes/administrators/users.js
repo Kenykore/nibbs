@@ -12,6 +12,8 @@ const UserController = require('../../../v1/controllers/user');
 
 router.get('/', UserController.fetchAllUser);
 router.get('/search', UserController.searchAllUser);
+router.get('/download/pdf', UserController.downloadAllUserPdf);
+router.get('/download/csv', UserController.downloadAllUserCsv);
 router.get('/filter', UserController.filterAllUser);
 router.get('/:userId', UserController.fetchSpecificUser);
 router.put('/role/:userId', verifyAdmin, UserController.updateUserRole);
