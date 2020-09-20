@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 const config = require('../../../config/index');
+const json2csv = require('json2csv');
+
 const status = require('http-status');
 const request = require('request-promise');
 const response = require('../../../utilities/response');
+const pdfToHtml = require('html-pdf');
 const User=require('../../../models/user');
 const Invite=require('../../../models/invite');
 const cloudinary = require('cloudinary').v2;
@@ -456,7 +459,13 @@ class UserController {
       const currentPage = parseInt(req.query.page) || 1;
       const skip = (currentPage-1) * usersPerPage;
       const search = req.query.search;
+      const searchObject={
+      };
+      if (req.query.filter) {
+        searchObject.role=req.query.filter;
+      }
       const totalusers = await User.find({
+        ...searchObject,
         $or: [
           {name: new RegExp(search, 'i')},
           {mobile: new RegExp(search, 'i')},
@@ -464,6 +473,7 @@ class UserController {
         ],
       }).countDocuments();
       const users = await User.find({
+        ...searchObject,
         $or: [
           {name: new RegExp(search, 'i')},
           {mobile: new RegExp(search, 'i')},
@@ -490,6 +500,136 @@ class UserController {
       return next(error);
     }
   }
+  static async downloadAllUserPdf(req, res, next) {
+    try {
+      const usersPerPage = parseInt(req.query.limit) || 10;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * usersPerPage;
+      const search = req.query.search;
+      const searchObject={
+      };
+      if (req.query.filter) {
+        searchObject.role=req.query.filter;
+      }
+      if (req.query.search) {
+        searchObject['$or']=[
+          {name: new RegExp(search, 'i')},
+          {mobile: new RegExp(search, 'i')},
+          {email: new RegExp(search, 'i')},
+        ];
+      }
+      const users = await User.find({
+        ...searchObject,
+      }).sort({_id: 'desc'});
+      if (users && users.length) {
+        let htmlString=`<html>
+<head>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  overflow:scroll;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 4px;
+}
+tr:nth-child(even) {
+  background-color: #dddddd;
+
+}
+</style>
+</head>
+<body>
+
+<h2>User List</h2>
+
+<table>
+  <tr>
+    <th>S/N</th>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Username</th>
+    <th>Mobile</th>
+    <th>Role</th>
+    <th>Status</th>
+  </tr>
+ `;
+        for (let u=0; u<users.length; u++) {
+          console.log(u, 'users');
+          htmlString= htmlString + `
+          <tr>
+          <td>${u}</td>
+          <td>${users[u].name || 'N/A'}</td>
+          <td>${users[u].email || 'N/A'}</td>
+          <td>${users[u].username || 'N/A'}</td>
+          <td>${users[u].mobile || 'N/A'}</td>
+          <td>${users[u].role || 'N/A'}</td>
+          <td>${users[u].status || 'N/A'}</td>
+        </tr>
+          `;
+        }
+        htmlString= htmlString + `
+        </table>
+</body>
+</html>`;
+        console.log(htmlString, 'HTML');
+        return pdfToHtml.create(htmlString).toStream((err, stream)=> {
+          if (err) {
+            console.log(err);
+            response.sendError({res, message: err.message});
+            return;
+          }
+          res.writeHead(200, {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'attachment; filename=user-list-mail-merge'
+          });
+          stream.pipe(res);
+        });
+      }
+      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+  static async downloadAllUserCsv(req, res, next) {
+    try {
+      const usersPerPage = parseInt(req.query.limit) || 10;
+      const currentPage = parseInt(req.query.page) || 1;
+      const skip = (currentPage-1) * usersPerPage;
+      const search = req.query.search;
+      const searchObject={
+      };
+      if (req.query.filter) {
+        searchObject.role=req.query.filter;
+      }
+      if (req.query.search) {
+        searchObject['$or']=[
+          {name: new RegExp(search, 'i')},
+          {mobile: new RegExp(search, 'i')},
+          {email: new RegExp(search, 'i')},
+        ];
+      }
+      const users = await User.find({
+        ...searchObject,
+      }).sort({_id: 'desc'});
+      if (users && users.length) {
+        const fields=['name', 'email', 'username', 'mobile'];
+        const csv =await json2csv.parseAsync(users, {fields: fields});
+        res.attachment('shipment.csv');
+        return res.status(200).send(csv);
+      }
+      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
+
   static async filterAllUser(req, res, next) {
     try {
       const usersPerPage = parseInt(req.query.limit) || 10;

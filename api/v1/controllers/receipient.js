@@ -228,17 +228,14 @@ class ReceipientController {
       }
       console.log(searchObject, 'search');
       const search = req.query.search;
-      if (!search) {
-        return response.sendError({res, message: 'Search query string is required'});
+      if (search) {
+        searchObject['$or']=[
+          {name: new RegExp(search, 'i')},
+          {email: new RegExp(search, 'i')},
+        ];
       }
-      const totalrecipients = await Recipient.find({...searchObject, $or: [
-        {name: new RegExp(search, 'i')},
-        {email: new RegExp(search, 'i')},
-      ]}).countDocuments();
-      const recipients = await Recipient.find({...searchObject, $or: [
-        {name: new RegExp(search, 'i')},
-        {email: new RegExp(search, 'i')},
-      ]}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
+      const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
+      const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
       const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
 
       if (recipients && recipients.length) {
