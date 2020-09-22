@@ -313,7 +313,7 @@ class UserController {
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-        return response.sendError({res, message: 'Invalid User id'});
+        return response.sendError({res, message: 'Invalid User id ,try again'});
       }
       const update=req.body;
       if (update['email']) {
