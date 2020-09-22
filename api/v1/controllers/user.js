@@ -317,7 +317,7 @@ class UserController {
       }
       const update=req.body;
       if (update['email']) {
-        const userFound=await User.findById(userDetails._id).lean();
+        const userFound=await User.findById(req.params.userId).lean();
         if (userFound.email !==req.body.email) {
           const userExist = await User.findOne({email: req.body.email});
           if (userExist) {
