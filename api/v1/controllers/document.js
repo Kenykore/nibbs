@@ -265,6 +265,8 @@ class DocumentController {
     try {
       const documentsPerPage = parseInt(req.query.limit) || 10;
       const currentPage = parseInt(req.query.page) || 1;
+      delete req.query.page;
+      delete req.query.limit;
       const skip = (currentPage-1) * documentsPerPage;
       const totaldocuments = await Document.find({...req.query}).countDocuments();
       const signedDocument=await Document.countDocuments({signed: true});
