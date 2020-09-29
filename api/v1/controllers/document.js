@@ -73,10 +73,10 @@ class DocumentController {
             to: s.email,
             from: 'e-signaturenotification@nibss-plc.com.ng',
             subject: 'Signature Required on Mail Merge NIBSS',
-            template_name: 'invite_to_sign',
+            template_name: 'signature-required',
             data: {
               name: s.name,
-              document: documentPrepared.documentTitle,
+              title: documentPrepared.documentTitle,
               url: 'https://nibss-mailmerge.netlify.app'
             }
           });
@@ -166,19 +166,24 @@ class DocumentController {
           if (checkSignatureAllSigned(documentUpdated.signatories)) {
             console.log('ready to send doc');
             await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
-          //   for (const s of req.body.recipients) {
-          //     await sendEmail({
-          //       to: s.email,
-          //       from: 'e-signaturenotification@nibss-plc.com.ng',
-          //       subject: 'Signature Required on Mail Merge NIBSS',
-          //       template_name: 'invite_to_sign',
-          //       data: {
-          //         name: s.name,
-          //         document: documentUpdated.documentTitle,
-          //         url: 'https://nibss-mailmerge.netlify.app'
-          //       }
-          //     });
-          //   }
+            for (const s of documentUpdated.recipients) {
+              await sendEmail({
+                to: s.email,
+                from: 'e-signaturenotification@nibss-plc.com.ng',
+                subject: 'Document Signed on Mail Merge NIBSS',
+                template_name: 'document-signed',
+                data: {
+                  name: s.name,
+                  title: documentUpdated.documentTitle,
+                  body: documentUpdated.documentBody,
+                  url: documentUpdated.file
+                },
+                attachment: [{
+                  filename: `${documentUpdated.documentTitle}.pdf`,
+                  path: documentUpdated.file
+                }]
+              });
+            }
           }
           return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
         }

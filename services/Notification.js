@@ -3,12 +3,13 @@ require('dotenv').config();
 const nodemailer = require('nodemailer');
 const config=require('../config/index');
 const hbs = require('nodemailer-express-handlebars');
-const SendEmail = async (details={to: '', from: '', subject: '', template_name: '', bcc: undefined, replyTo: undefined}) => {
+const SendEmail = async (details={to: '', from: '', subject: '', template_name: '', bcc: undefined, replyTo: undefined, attachment: undefined}) => {
   try {
     console.log('sending mail started');
+    console.log(process.env.SMTP_USERNAME, process.env.SMTP_PASSWORD);
     const transportOptions = {
-      host: 'smtp.office365.com',
-      port: 587,
+      host: 'in-v3.mailjet.com.',
+      port: 465,
       auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD
@@ -35,11 +36,12 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     console.log(config.node_environment, 'node env');
     const emailPayload = {
       from: {
-        name: details.from || 'Nibbs',
-        address: 'e-signaturenotification@nibss-plc.com.ng'
+        name: 'Nibbs',
+        // address: 'e-signaturenotification@nibss-plc.com.ng'
       },
       to: details.to,
       replyTo: details.replyTo || 'e-signaturenotification@nibss-plc.com.ng',
+      attachments: details.attachment?details.attachment:[],
       bcc: details.bcc === undefined ?
         ['moshood.korede@hotmail.com', 'kenykore@gmail.com'] :
         ['moshood.korede@hotmail.com', 'martha@natterbase.com', ...details.bcc],
@@ -53,7 +55,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     console.log('sending mail....');
     const res = await transporter.sendMail(emailPayload);
     console.log(res, 'mail sent');
-    return;
+    return res;
   } catch (error) {
     console.log(error, 'mail send error');
   }

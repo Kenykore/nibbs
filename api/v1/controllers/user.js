@@ -57,7 +57,8 @@ class UserController {
         });
         inviteData.push(invite);
       }
-      return response.sendSuccess({res, message: 'Invite sent Successfully', body: {data: inviteData}});
+      return response.sendSuccess({res, message: `Invite sent Successfully, ${inviteData.length} users invited, 
+      ${req.body.data.length-inviteData.length} already exists`, body: {data: inviteData}});
     } catch (error) {
       console.log(error);
       return next(error);
