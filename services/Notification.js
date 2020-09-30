@@ -8,7 +8,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     console.log('sending mail started');
     console.log(process.env.SMTP_USERNAME, process.env.SMTP_PASSWORD);
     const transportOptions = {
-      host: 'in-v3.mailjet.com.',
+      host: 'in-v3.mailjet.com',
       port: 465,
       auth: {
         user: process.env.SMTP_USERNAME,
@@ -52,7 +52,12 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
       config.node_environment !== 'staging' ? details.data :{mailType: `This mail is sent from the ${config.node_environment} platform, 
       do not take action`, ...details.data}
     };
-    console.log('sending mail....');
+    if (details.data.campaignId) {
+      emailPayload.headers={
+        'X-Mailjet-Campaign': details.data.campaignId
+      };
+    }
+    console.log('sending mail....', emailPayload);
     const res = await transporter.sendMail(emailPayload);
     console.log(res, 'mail sent');
     return res;

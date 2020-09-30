@@ -176,6 +176,7 @@ class DocumentController {
                   name: s.name,
                   title: documentUpdated.documentTitle,
                   body: documentUpdated.documentBody,
+                  campaignId: documentUpdated._id,
                   url: documentUpdated.file
                 },
                 attachment: [{
@@ -240,19 +241,25 @@ class DocumentController {
           if (checkSignatureAllSigned(documentUpdated.signatories)) {
             console.log('ready to send doc');
             await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
-          //   for (const s of req.body.recipients) {
-          //     await sendEmail({
-          //       to: s.email,
-          //       from: 'e-signaturenotification@nibss-plc.com.ng',
-          //       subject: 'Signature Required on Mail Merge NIBSS',
-          //       template_name: 'invite_to_sign',
-          //       data: {
-          //         name: s.name,
-          //         document: documentUpdated.documentTitle,
-          //         url: 'https://nibss-mailmerge.netlify.app'
-          //       }
-          //     });
-          //   }
+            for (const s of documentUpdated.recipients) {
+              await sendEmail({
+                to: s.email,
+                from: 'e-signaturenotification@nibss-plc.com.ng',
+                subject: 'Document Signed on Mail Merge NIBSS',
+                template_name: 'document-signed',
+                data: {
+                  name: s.name,
+                  title: documentUpdated.documentTitle,
+                  body: documentUpdated.documentBody,
+                  url: documentUpdated.file,
+                  campaignId: documentUpdated._id
+                },
+                attachment: [{
+                  filename: `${documentUpdated.documentTitle}.pdf`,
+                  path: documentUpdated.file
+                }]
+              });
+            }
           }
           return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
         }
@@ -273,11 +280,20 @@ class DocumentController {
       delete req.query.page;
       delete req.query.limit;
       const skip = (currentPage-1) * documentsPerPage;
-      const totaldocuments = await Document.find({...req.query}).countDocuments();
+      const totaldocuments = await Document.find({...req.query,
+        $or: [{
+          ownerId: req.userDetails.userId
+        }, {
+          'signatories.email': req.userDetails.email
+        }]}).countDocuments();
       const signedDocument=await Document.countDocuments({signed: true});
       const pendingDocument=await Document.countDocuments({signed: false});
       const archivedDocument=await Document.countDocuments({deleted: true});
-      const documents = await Document.find({...req.query}).sort({_id: 'desc'}).skip(skip).limit(documentsPerPage);
+      const documents = await Document.find({...req.query, $or: [{
+        ownerId: req.userDetails.userId
+      }, {
+        'signatories.email': req.userDetails.email
+      }]}).sort({_id: 'desc'}).skip(skip).limit(documentsPerPage);
       const totalPages = Math.ceil(totaldocuments / documentsPerPage);
 
       if (documents && documents.length) {
