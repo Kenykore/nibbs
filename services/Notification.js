@@ -37,10 +37,10 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     const emailPayload = {
       from: {
         name: 'Nibbs',
-        // address: 'e-signaturenotification@nibss-plc.com.ng'
+        address: 'info@zeedas.com'
       },
       to: details.to,
-      replyTo: details.replyTo || 'e-signaturenotification@nibss-plc.com.ng',
+      replyTo: details.replyTo || 'info@zeedas.com',
       attachments: details.attachment?details.attachment:[],
       bcc: details.bcc === undefined ?
         ['moshood.korede@hotmail.com', 'kenykore@gmail.com'] :
