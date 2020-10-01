@@ -40,6 +40,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
         address: 'info@zeedas.com'
       },
       to: details.to,
+      priority: 'high',
       replyTo: details.replyTo || 'info@zeedas.com',
       attachments: details.attachment?details.attachment:[],
       bcc: details.bcc === undefined ?
@@ -54,7 +55,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     };
     if (details.data.campaignId) {
       emailPayload.headers={
-        'X-Mailjet-Campaign': details.data.campaignId
+        'x-mailjet-campaign': details.data.campaignId.toString()
       };
     }
     console.log('sending mail....', emailPayload);

@@ -165,7 +165,7 @@ class DocumentController {
           });
           if (checkSignatureAllSigned(documentUpdated.signatories)) {
             console.log('ready to send doc');
-            await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
+            await Document.findByIdAndUpdate(req.body.documentId, {signed: true}).lean();
             for (const s of documentUpdated.recipients) {
               await sendEmail({
                 to: s.email,
@@ -231,7 +231,7 @@ class DocumentController {
           'signatories.$.signature': req.body.signature,
           'signatories.$.signed': true,
           'file': file.path
-        }, {new: true});
+        }, {new: true}).lean();
         if (documentUpdated) {
           await DocumentLog.create({
             log: `${user.name} signed document`,

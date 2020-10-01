@@ -31,6 +31,8 @@ app.use(fileUpload({
 const authRouter = require('./api/v1/routes/authentication');
 // document router
 const documentRouter = require('./api/v1/routes/document');
+// mailjet hook router
+const mailjetRouter = require('./api/v1/routes/mailjet');
 // user router
 const adminUserRouter = require('./api/v1/routes/administrators/users');
 const userRouter = require('./api/v1/routes/users/users');
@@ -40,7 +42,8 @@ const userInviteRouter = require('./api/v1/routes/users/invite');
 // recipient router
 const adminRecipientRouter = require('./api/v1/routes/administrators/recipient');
 app.use('/auth', authRouter);
-app.use('/documents', documentRouter);
+app.use('/documents', documentRouter)
+app.use('/mailjet', mailjetRouter);
 app.use('/users', userRouter);
 app.use('/admin/users', adminUserRouter);
 app.use('/users/invite', userInviteRouter);

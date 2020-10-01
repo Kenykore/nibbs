@@ -8,8 +8,8 @@ const router = express.Router();
 // middleware
 
 // Administrator Controller
-const MailJetController = require('../controllers/document');
+const MailJetController = require('../controllers/mailjet');
 
 
-router.post('/', verifyUser, DocumentController.prepareDocument);
+router.post('/', MailJetController.recordData);
 module.exports = router;

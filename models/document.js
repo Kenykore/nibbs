@@ -4,6 +4,28 @@ const moment = require('moment');
 const documentModel= new mongoose.Schema({
   ownerId: String,
   publicId: String,
+  stats: {
+    open: {
+      type: Number,
+      default: 0
+    },
+    spam: {
+      type: Number,
+      default: 0
+    },
+    blocked: {
+      type: Number,
+      default: 0
+    },
+    bounced: {
+      type: Number,
+      default: 0
+    },
+    clicked: {
+      type: Number,
+      default: 0
+    },
+  },
   signed: {
     type: Boolean,
     default: false
