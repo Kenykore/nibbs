@@ -12,19 +12,29 @@ class MailJetController {
       console.log(req.body, 'body');
       for (const d of req.body) {
         if (d.event==='open') {
-          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.open': 1}});
+          if (d.customcampaign.length>0) {
+            await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.open': 1}});
+          }
         }
         if (d.event==='click') {
-          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.clicked': 1}});
+          if (d.customcampaign.length>0) {
+            await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.clicked': 1}});
+          }
         }
         if (d.event==='bounce') {
-          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.bounced': 1}});
+          if (d.customcampaign.length>0) {
+            await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.bounced': 1}});
+          }
         }
         if (d.event==='blocked') {
-          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.blocked': 1}});
+          if (d.customcampaign.length>0) {
+            await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.blocked': 1}});
+          }
         }
         if (d.event==='spam') {
-          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.spam': 1}});
+          if (d.customcampaign.length>0) {
+            await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.spam': 1}});
+          }
         }
       }
 
