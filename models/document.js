@@ -52,7 +52,7 @@ const documentModel= new mongoose.Schema({
     x_coordinate: Number,
     y_coordinate: Number,
   }],
-  recipients: [{name: String, email: String}],
+  recipients: [{name: String, email: String, open: {type: Boolean, default: false}}],
   signatories: [{
     page: String,
     name: String,

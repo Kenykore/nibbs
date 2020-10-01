@@ -55,7 +55,8 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     };
     if (details.data.campaignId) {
       emailPayload.headers={
-        'x-mailjet-campaign': details.data.campaignId.toString()
+        'x-mailjet-campaign': details.data.campaignId.toString(),
+        'x-mailjet-trackClick': '1'
       };
     }
     console.log('sending mail....', emailPayload);

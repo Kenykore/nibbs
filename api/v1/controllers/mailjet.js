@@ -1,5 +1,6 @@
 const User=require('../../../models/user');
 const Document=require('../../../models/document');
+const objectId= require('mongoose').Types.ObjectId;
 const status = require('http-status');
 const request = require('request-promise');
 const response = require('../../../utilities/response');
@@ -14,6 +15,7 @@ class MailJetController {
         if (d.event==='open') {
           if (d.customcampaign.length>0) {
             await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.open': 1}});
+            await Document.findOneAndUpdate({'_id': objectId(d.customcampaign), 'recipients.email': d.email}, {$set: {'recipients.$.open': true}});
           }
         }
         if (d.event==='click') {

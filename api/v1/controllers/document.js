@@ -100,6 +100,38 @@ class DocumentController {
   static async signDocument(req, res, next) {
     try {
       const user=req.userDetails;
+      if (req.files || Object.keys(req.files).length > 0) {
+        const files=[];
+        for (const f of Object.keys(req.files)) {
+          const allFiles=req.files[f];
+
+          console.log(allFiles, 'file');
+          if (Array.isArray(allFiles)) {
+            for (const ff of allFiles) {
+              const file=await uploadSignature(ff, user.email);
+              console.log(file, 'file uploaded');
+              if (!file) {
+                continue;
+              }
+              files.push(file.path);
+            }
+          }
+          const file=await uploadSignature(allFiles, user.email);
+          console.log(file, 'file uploaded');
+          if (!file) {
+            continue;
+          }
+          files.push(file.path);
+        }
+        if (files.length===0) {
+          return response.sendError({res, message: 'Could not upload signature'});
+        }
+        req.body.signature=files[0];
+        await User.findByIdAndUpdate(user.userId, {
+          $push: {signatures: files[0]}
+        });
+      }
+
       const {error} = validateSignDocument({...req.body});
       if (error) {
         return response.sendError({
@@ -132,7 +164,7 @@ class DocumentController {
         const pngImage = await pdfDoc.embedPng(signatureImageBytes);
         const pngDims = pngImage.scale(0.5);
         // Add a blank page to the document
-        const page = pdfDoc.getPage(Number(signatureFound.page));
+        const page = pdfDoc.getPage(Number(signatureFound.page || 0));
         page.drawImage(pngImage, {
           x: signatureFound.x_coordinate,
           y: signatureFound.y_coordinate,
@@ -368,6 +400,30 @@ async function uploadFile(f, userId) {
       secure: true,
     });
     return {file: f, path: fileUploaded.secure_url, name: f.name, publicId: publicId};
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+/**
+ * Method to upload signature
+ * @param   {File}  f  file objct
+ * @param   {String}  userId  user id
+ *
+ * @return  {Promise<Boolean | Object>}
+ */
+async function uploadSignature(f, userId) {
+  try {
+    console.log(f, 'file in upload');
+    const publicId = `signatures/${userId}/${f.name}`;
+    const fileUploaded=await
+    cloudinary.uploader.upload(f.tempFilePath, {
+      resource_type: 'image',
+      format: f.mimetype.split('/')[1],
+      public_id: publicId,
+      secure: true,
+    });
+    return {file: f, path: fileUploaded.secure_url};
   } catch (error) {
     console.log(error);
     return false;
