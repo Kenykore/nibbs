@@ -100,7 +100,7 @@ class DocumentController {
   static async signDocument(req, res, next) {
     try {
       const user=req.userDetails;
-      if (req.files || Object.keys(req.files).length > 0) {
+      if (req.files && Object.keys(req.files).length > 0) {
         const files=[];
         for (const f of Object.keys(req.files)) {
           const allFiles=req.files[f];
