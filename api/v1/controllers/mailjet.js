@@ -10,21 +10,24 @@ class MailJetController {
   static async recordData(req, res, next) {
     try {
       console.log(req.body, 'body');
-      if (req.body.event==='open') {
-        await Document.findByIdAndUpdate(req.body.customcampaign, {$inc: {'stats.open': 1}});
+      for (const d of req.body) {
+        if (d.event==='open') {
+          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.open': 1}});
+        }
+        if (d.event==='click') {
+          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.clicked': 1}});
+        }
+        if (d.event==='bounce') {
+          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.bounced': 1}});
+        }
+        if (d.event==='blocked') {
+          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.blocked': 1}});
+        }
+        if (d.event==='spam') {
+          await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.spam': 1}});
+        }
       }
-      if (req.body.event==='click') {
-        await Document.findByIdAndUpdate(req.body.customcampaign, {$inc: {'stats.clicked': 1}});
-      }
-      if (req.body.event==='bounce') {
-        await Document.findByIdAndUpdate(req.body.customcampaign, {$inc: {'stats.bounced': 1}});
-      }
-      if (req.body.event==='blocked') {
-        await Document.findByIdAndUpdate(req.body.customcampaign, {$inc: {'stats.blocked': 1}});
-      }
-      if (req.body.event==='spam') {
-        await Document.findByIdAndUpdate(req.body.customcampaign, {$inc: {'stats.spam': 1}});
-      }
+
       return response.sendSuccess({res, message: 'Stats added'});
     } catch (error) {
       console.log(error);
