@@ -173,7 +173,7 @@ class DocumentController {
         });
         const pdfBytes = await pdfDoc.save();
         console.log('uploading file');
-        const id='tempdoc.pdf';
+        const id='temp.pdf';
         const fileSaved=await saveFile(pdfBytes, id);
         console.log(fileSaved, 'file saved');
         const file=await uploadSignedDoc(id, documentToSign.publicId);
@@ -479,13 +479,13 @@ function checkSignatureAllSigned(data) {
  */
 function saveFile(data, id) {
   return new Promise((resolve)=>{
-    fs.writeFile(`${id}`, data, (err, data)=>{
+    fs.writeFile(`${id}`, data, (err, f)=>{
       if (err) {
         console.log(err);
         resolve(false);
       }
-      console.log(data, 'file');
-      resolve(data);
+      console.log(f, 'file');
+      resolve(f);
     });
   });
 }

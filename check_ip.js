@@ -12,7 +12,7 @@ async function getDeliveryReport() {
   try {
     console.log('connecting to mailjet...');
     const request = mailjet.get('statcounters').request({
-      SourceId: '5f72c4f65f0c82b72a91f739',
+      SourceId: '5f76ded383ce345563ee4a7e',
       CounterSource: 'Campaign',
       CounterTiming: 'Message',
       CounterResolution: 'Lifetime',
@@ -70,7 +70,7 @@ async function deleteDocument() {
     console.log('connected to db,Instating model..');
     const DB = await connection.db;
     const Charter = DB.collection('documents');
-    await Charter.deleteOne({_id: ObjectID('5f756e9fc5595382c58f5b56')});
+    await Charter.deleteOne({_id: ObjectID('5f76ded383ce345563ee4a7e')});
     await connection.close();
     return;
   } catch (error) {
