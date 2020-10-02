@@ -77,7 +77,7 @@ class DocumentController {
             data: {
               name: s.name,
               title: documentPrepared.documentTitle,
-              url: 'https://nibss-mailmerge.netlify.app'
+              url: 'https://nibss-mailmerge.netlify.app/'
             }
           });
         }
@@ -157,11 +157,13 @@ class DocumentController {
       if (!imgFile.includes(fileType)) {
         const existingPdf =await fetch(documentToSign.file);
         const signatureImage = await fetch(req.body.signature);
+        const signatureTypeArray=req.body.signature.split('.');
+        const signatureType=signatureTypeArray[signatureTypeArray.length-1];
         const existingPdfBytes=await existingPdf.buffer();
         const signatureImageBytes=await signatureImage.buffer();
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
         console.log(pdfDoc, 'pdf');
-        const pngImage = await pdfDoc.embedPng(signatureImageBytes);
+        const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
         const pngDims = pngImage.scale(0.5);
         // Add a blank page to the document
         const page = pdfDoc.getPage(Number(signatureFound.page || 0));
@@ -228,11 +230,13 @@ class DocumentController {
         const pdfDoc = await PDFDocument.create();
         const page = pdfDoc.addPage([550, 750]);
         const signatureImage = await fetch(req.body.signature);
+        const signatureTypeArray=req.body.signature.split('.');
+        const signatureType=signatureTypeArray[signatureTypeArray.length-1];
         const pdfImage=await fetch(documentToSign.file);
         const signatureImageBytes=await signatureImage.buffer();
         const pdfImageBuffer=await pdfImage.buffer();
-        const pdfImageEmbed = await pdfDoc.embedPng(pdfImageBuffer);
-        const pngImage = await pdfDoc.embedPng(signatureImageBytes);
+        const pdfImageEmbed = fileType==='jpg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
+        const pngImage =signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
         const pngDims = pngImage.scale(0.5);
         page.drawImage(pdfImageEmbed, {
           x: 0,
