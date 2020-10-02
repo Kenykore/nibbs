@@ -3,6 +3,8 @@ const request = require('request-promise');
 const mailjet = require('node-mailjet')
   .connect(process.env.SMTP_USERNAME, process.env.SMTP_PASSWORD);
 const fetch = require('node-fetch');
+const mongoose = require('mongoose');
+const ObjectID = mongoose.Types.ObjectId;
 /**
  * script
  */
@@ -51,9 +53,30 @@ async function getDeliveryReportTwo() {
     console.log(error);
   }
 }
-getDeliveryReportTwo().then((res)=>{
-  console.log(res, 'res');
-}).catch((err)=>{
-  console.log(err, 'error');
-});
+// getDeliveryReportTwo().then((res)=>{
+//   console.log(res, 'res');
+// }).catch((err)=>{
+//   console.log(err, 'error');
+// });
+async function deleteDocument() {
+  try {
+    console.log('connecting to db...');
+    const connection = await mongoose.createConnection('mongodb+srv://kenykore:boluwatife@cluster0-5qrlk.mongodb.net/nibbsdev?retryWrites=true&w=majority', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+      useCreateIndex: true
+    });
+    console.log('connected to db,Instating model..');
+    const DB = await connection.db;
+    const Charter = DB.collection('documents');
+    await Charter.deleteOne({_id: ObjectID('5f756e9fc5595382c58f5b56')});
+    await connection.close();
+    return;
+  } catch (error) {
+    console.log(error);
+  }
+}
+deleteDocument().then((res)=>{
 
+});

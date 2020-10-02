@@ -441,7 +441,7 @@ async function uploadSignedDoc(f, publicId) {
   try {
     console.log(f, 'file in upload');
     const fileUploaded=await
-    cloudinary.uploader.upload_large(f, {
+    cloudinary.uploader.upload(f, {
       public_id: publicId,
       secure: true,
     });
