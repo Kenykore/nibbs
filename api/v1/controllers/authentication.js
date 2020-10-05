@@ -69,7 +69,7 @@ class AuthenticationController {
       return response.sendSuccess({
         res,
         message: 'Login successful',
-        body: {_token: accessToken, data: data.user}
+        body: {_token: accessToken, data: {...data.user, userCount: await User.countDocuments()}}
       });
     } catch (error) {
       console.log(error);
