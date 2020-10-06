@@ -69,6 +69,13 @@ class DocumentController {
       // send to all signatories
       if (documentPrepared) {
         for (const s of req.body.signatories) {
+          const userFound=await User.findOne({email: s.email}).lean();
+          const accessToken = Tokenizer.signToken({
+            ...userFound,
+            userId: userFound._id || undefined,
+            verified: true
+          });
+          console.log(process.env.BASE_URL, 'base url');
           await sendEmail({
             to: s.email,
             from: 'e-signaturenotification@nibss-plc.com.ng',
@@ -77,7 +84,7 @@ class DocumentController {
             data: {
               name: s.name,
               title: documentPrepared.documentTitle,
-              url: 'https://nibss-mailmerge.netlify.app/'
+              url: `${process.env.BASE_URL}/append-document-open/${documentPrepared._id}/${accessToken}`
             }
           });
         }
