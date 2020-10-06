@@ -131,7 +131,6 @@ class DocumentController {
           $push: {signatures: files[0]}
         });
       }
-      console.log(req.body, 'body');
       const {error} = validateSignDocument({...req.body});
       if (error) {
         return response.sendError({
@@ -238,7 +237,7 @@ class DocumentController {
         const pdfImageEmbed = fileType==='jpg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
         const pngImage =signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
         const pngDims = pngImage.scale(0.5);
-        const page = pdfDoc.addPage([pdfImageEmbed.height, pdfImageEmbed.width]);
+        const page = pdfDoc.addPage([pdfImageEmbed.width, pdfImageEmbed.height]);
         page.drawImage(pdfImageEmbed, {
           x: 0,
           y: 0,
