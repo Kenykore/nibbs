@@ -69,8 +69,11 @@ async function deleteDocument() {
     });
     console.log('connected to db,Instating model..');
     const DB = await connection.db;
-    const Charter = DB.collection('documents');
-    await Charter.deleteOne({_id: ObjectID('5f76ded383ce345563ee4a7e')});
+    const Document = DB.collection('documents');
+    const doc=await Document.updateMany({}, {
+      $set: {'signatories.$.page': 0}
+    }, {new: true});
+
     await connection.close();
     return;
   } catch (error) {

@@ -172,10 +172,10 @@ class DocumentController {
         const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
         const pngDims = pngImage.scale(0.5);
         // Add a blank page to the document
-        const page = pdfDoc.getPage(Number(signatureFound.page || 0));
+        const page = pdfDoc.getPage(Number(signatureFound.page) || 0);
         page.drawImage(pngImage, {
           x: signatureFound.x_coordinate,
-          y: signatureFound.y_coordinate,
+          y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height),
           width: pngDims.width,
           height: pngDims.height,
         });
@@ -226,6 +226,7 @@ class DocumentController {
               });
             }
           }
+          console.log('done');
           return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
         }
         return response.sendError({
