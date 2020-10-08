@@ -44,7 +44,9 @@ class AuthenticationController {
           email: req.body.email || '',
           username: req.body.username,
           name: 'Oluwakorede',
-          mobile: '+2348133699506'
+          mobile: '+2348133699506',
+          role: 'user',
+          status: 'inactive'
         }
       };
       console.log(userDetails.data, 'user details');
