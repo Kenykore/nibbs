@@ -53,7 +53,7 @@ class AuthenticationController {
       }
       let verified=false;
       const data={user: userDetails.data};
-      const userExist = await User.findOne({$or: [{username: data.user.username}, {email: data.user.email}]}).lean();
+      const userExist = await User.findOne( {email: data.user.email}).lean();
       console.log(userExist, 'uset exist');
       if (userExist) {
         verified=true;

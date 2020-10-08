@@ -175,7 +175,7 @@ class DocumentController {
         const page = pdfDoc.getPage(Number(signatureFound.page) || 0);
         page.drawImage(pngImage, {
           x: signatureFound.x_coordinate,
-          y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height),
+          y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
           width: pngDims.width,
           height: pngDims.height,
         });
@@ -254,7 +254,7 @@ class DocumentController {
         });
         page.drawImage(pngImage, {
           x: signatureFound.x_coordinate,
-          y: signatureFound.y_coordinate,
+          y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
           width: pngDims.width,
           height: pngDims.height,
         });
