@@ -330,9 +330,21 @@ class DocumentController {
         }, {
           'signatories.email': req.userDetails.email
         }]}).countDocuments();
-      const signedDocument=await Document.countDocuments({signed: true});
-      const pendingDocument=await Document.countDocuments({signed: false});
-      const archivedDocument=await Document.countDocuments({deleted: true});
+      const signedDocument=await Document.countDocuments({signed: true, $or: [{
+        ownerId: req.userDetails.userId
+      }, {
+        'signatories.email': req.userDetails.email
+      }]});
+      const pendingDocument=await Document.countDocuments({signed: false, $or: [{
+        ownerId: req.userDetails.userId
+      }, {
+        'signatories.email': req.userDetails.email
+      }]});
+      const archivedDocument=await Document.countDocuments({deleted: true, $or: [{
+        ownerId: req.userDetails.userId
+      }, {
+        'signatories.email': req.userDetails.email
+      }]});
       const documents = await Document.find({...req.query, $or: [{
         ownerId: req.userDetails.userId
       }, {
