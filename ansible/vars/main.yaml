@@ -1,0 +1,8 @@
+---
+APP_NAME: nibss-website-backend
+IMG_TAG: "{{ lookup('env', 'IMG_TAG') }}"
+COLON: ":"
+CONTAINER_PORT: "80"
+HOST_PORT: "{{ lookup('env', 'HOST_PORT') }}"
+APP_LOGS: "{{ lookup('env', 'APP_LOGS') }}"
+APP_HOME: "{{ lookup('env', 'APP_HOME') }}"

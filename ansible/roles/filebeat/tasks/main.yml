@@ -1,0 +1,28 @@
+- name: Copy filebeat to deployment VM
+  copy:
+    src: "../filebeat-7.6.2-x86_64.rpm"
+    dest: "~/"
+    force: yes
+
+
+- name: Install filebeat package
+  become: true
+  yum:
+     name: /home/deployer/filebeat-7.6.2-x86_64.rpm
+     state: present
+
+
+- name: Copy filebeat.yml to deployment VM
+  become: true
+  copy:
+    src: "../filebeat-{{ BRANCH }}.yml"
+    dest: "/etc/filebeat/filebeat.yml"
+    force: yes
+
+
+- name: Ensure Filebeat is started and enabled at boot
+  become: true
+  service:
+    name: filebeat
+    state: restarted
+    enabled: true

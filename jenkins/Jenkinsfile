@@ -1,0 +1,153 @@
+def AnsibleDeploy() {
+     sh 'env'
+     sh 'touch hosts.ini && echo ${FE_env} | base64 --decode > .env'
+     sh 'touch hosts.ini && echo ${hosts_ini} | base64 --decode > hosts.ini'
+     sh 'ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i hosts.ini ansible/playbook.yml'
+ }
+
+ def InjectEnv() {
+      sh 'touch hosts.ini && echo ${FE_env} | base64 --decode > .env'
+  }
+
+pipeline {
+    environment {
+        IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
+        APP_NAME="MailMerge-FrontEnd"
+    }
+
+    agent {
+        dockerfile {
+            dir 'jenkins/'
+        }
+    }
+
+    stages {
+        stage('Unit-Tests'){
+            steps{
+                sh 'npm i'
+                sh 'ls -la'
+            }
+        }
+
+        stage('Code Quality - Sonar Scanner - PR'){
+            when {
+                changeRequest()
+            }
+            steps{
+              withSonarQubeEnv('SonarCloud') {
+                sh 'env'
+                sh 'sonar-scanner -Dsonar.pullrequest.key=${CHANGE_ID}'
+                }
+            }
+        }
+        stage('Code Quality - Sonar Scanner - BRANCH'){
+            when {
+               not {changeRequest()}
+            }
+            steps{
+              withSonarQubeEnv('SonarCloud') {
+                sh 'ls -al'
+                sh 'sonar-scanner -Dsonar.branch.name=${BRANCH_NAME}'
+                }
+            }
+        }
+
+        stage('Inject to dev') {
+            when { branch 'dev#'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dev', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to QA') {
+            when {branch 'qa'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-qa', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to DR') {
+            when {branch 'dr'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dr', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to Staging') {
+            when {branch 'staging'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-staging', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to Certification') {
+            when {branch 'certification'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-cert', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to Prod') {
+            when { branch 'master'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-prod', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'npm run build'
+                sh 'env GZIP=-9 tar -cvf build.tar.gz build'
+            }
+        }
+
+        stage('Deploy to dev') {
+            when { branch 'dev#'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dev', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to QA') {
+            when {branch 'qa'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-qa', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to DR') {
+            when {branch 'dr'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dr', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to Staging') {
+            when {branch 'staging'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-staging', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to Certification') {
+            when {branch 'certification'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-cert', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to Prod') {
+            when { branch 'master'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-prod', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+    }
+    post{
+        always{
+            cleanWs()
+        }
+    }
+}

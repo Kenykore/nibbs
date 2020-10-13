@@ -1,0 +1,44 @@
+- name: Clean docker file archive
+  file:
+    state: absent
+    path: "~/{{ APP_NAME }}/"
+
+- name: Copy docker image tar to deployment VM
+  copy:
+    src: "../{{ APP_NAME ~ COLON ~ IMG_TAG }}.tar"
+    dest: "/home/deployer/{{ APP_NAME }}/"
+    force: yes
+
+- name: Create logs directory
+  file:
+    path: "{{item}}"
+    state: directory
+  loop:
+    - "{{APP_LOGS}}"
+    - "{{APP_HOME}}"
+
+- name: Add user to docker group
+  become: true
+  shell: |
+    usermod -aG docker $USER
+
+- name: Load Docker image
+  become: true
+  shell: |
+    docker load --input /home/deployer/{{ APP_NAME }}/{{ APP_NAME ~ COLON ~ IMG_TAG }}.tar
+
+- name: Running the container
+  become: true
+  docker_container:
+    image: "{{ APP_NAME ~ COLON ~ IMG_TAG }}"
+    state: started
+    name: "{{ APP_NAME }}"
+    restart_policy: unless-stopped
+    published_ports: "{{ HOST_PORT ~ COLON ~ CONTAINER_PORT }}"
+
+
+- name: Remove existing Images
+  become: true
+  shell: |
+    docker images -aq | xargs docker rmi || echo deleted
+
