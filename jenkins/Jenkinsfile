@@ -1,18 +1,17 @@
 def AnsibleDeploy() {
      sh 'env'
-     sh 'touch hosts.ini && echo ${FE_env} | base64 --decode > .env'
      sh 'touch hosts.ini && echo ${hosts_ini} | base64 --decode > hosts.ini'
      sh 'ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i hosts.ini ansible/playbook.yml'
  }
 
  def InjectEnv() {
-      sh 'touch hosts.ini && echo ${FE_env} | base64 --decode > .env'
+      sh 'touch hosts.ini && echo ${BE_env} | base64 --decode > .env'
   }
 
 pipeline {
     environment {
         IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
-        APP_NAME="MailMerge-FrontEnd"
+        APP_NAME="MailMerge-Backend"
     }
 
     agent {
@@ -95,10 +94,11 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                sh 'npm run build'
-                sh 'env GZIP=-9 tar -cvf build.tar.gz build'
+        stage('Build  Image'){
+            steps{
+                sh "docker build -t $APP_NAME:$IMG_TAG . "
+                sh "docker save -o $APP_NAME:$IMG_TAG'.tar' $APP_NAME:$IMG_TAG"
+                sh 'ls -la'
             }
         }
 

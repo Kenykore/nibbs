@@ -9,13 +9,13 @@
     dest: "/home/deployer/{{ APP_NAME }}/"
     force: yes
 
-- name: Create logs directory
+- name: Create directory
   file:
     path: "{{item}}"
     state: directory
   loop:
-    - "{{APP_LOGS}}"
-    - "{{APP_HOME}}"
+    - "{{APP_LOGS | default('/var/logs')}}"
+    - "{{APP_HOME | default ('/app/{{APP_NAME}}')}}"
 
 - name: Add user to docker group
   become: true
@@ -35,6 +35,7 @@
     name: "{{ APP_NAME }}"
     restart_policy: unless-stopped
     published_ports: "{{ HOST_PORT ~ COLON ~ CONTAINER_PORT }}"
+
 
 
 - name: Remove existing Images
