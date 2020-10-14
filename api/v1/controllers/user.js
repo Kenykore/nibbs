@@ -97,12 +97,11 @@ class UserController {
         console.log(allFiles, 'file');
         if (Array.isArray(allFiles)) {
           for (const ff of allFiles) {
-            const file=await uploadFile(ff, user.email);
-            console.log(file, 'file uploaded');
-            if (!file) {
+            const fileUploaded=await uploadFile(ff, user.email);
+            if (!fileUploaded) {
               continue;
             }
-            files.push(file.path);
+            files.push(fileUploaded.path);
           }
         }
         const file=await uploadFile(allFiles, user.email);
@@ -117,15 +116,14 @@ class UserController {
       }
       console.log(user, 'user');
       if (inviteFound) {
-        const userCreated= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
-        console.log(userCreated, 'user created');
-        if (userCreated) {
+        const userFound= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
+        if (userFound) {
           const accessToken = Tokenizer.signToken({
-            ...userCreated.toObject(),
-            userId: userCreated._id,
+            ...userFound.toObject(),
+            userId: userFound._id,
             verified: true
           });
-          return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
+          return response.sendSuccess({res, message: 'User created Successfully', body: {data: userFound, _token: accessToken}});
         }
         return response.sendError({res, message: 'Unable to create User'});
       }
@@ -159,12 +157,11 @@ class UserController {
         console.log(allFiles, 'file');
         if (Array.isArray(allFiles)) {
           for (const ff of allFiles) {
-            const file=await uploadFile(ff, user.email);
-            console.log(file, 'file uploaded');
-            if (!file) {
+            const fileUploaded=await uploadFile(ff, user.email);
+            if (!fileUploaded) {
               continue;
             }
-            files.push(file.path);
+            files.push(fileUploaded.path);
           }
         }
         const file=await uploadFile(allFiles, user.email);
@@ -503,9 +500,6 @@ class UserController {
   }
   static async downloadAllUserPdf(req, res, next) {
     try {
-      const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 1;
-      const skip = (currentPage-1) * usersPerPage;
       const search = req.query.search;
       const searchObject={
       };
@@ -599,9 +593,6 @@ tr:nth-child(even) {
   }
   static async downloadAllUserCsv(req, res, next) {
     try {
-      const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 1;
-      const skip = (currentPage-1) * usersPerPage;
       const search = req.query.search;
       const searchObject={
       };

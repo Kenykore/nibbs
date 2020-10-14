@@ -50,12 +50,12 @@ class DocumentController {
         console.log(allFiles, 'file');
         if (Array.isArray(allFiles)) {
           for (const ff of allFiles) {
-            const file=await uploadFile(ff, user.email);
-            console.log(file, 'file uploaded');
-            if (!file) {
+            const fileUploaded=await uploadFile(ff, user.email);
+            console.log(fileUploaded, 'file uploaded');
+            if (!fileUploaded) {
               continue;
             }
-            files.push({path: file.path, publicId: file.publicId});
+            files.push({path: fileUploaded.path, publicId: fileUploaded.publicId});
           }
         }
         const file=await uploadFile(allFiles, user.email);
@@ -115,12 +115,11 @@ class DocumentController {
           console.log(allFiles, 'file');
           if (Array.isArray(allFiles)) {
             for (const ff of allFiles) {
-              const file=await uploadSignature(ff, user.email);
-              console.log(file, 'file uploaded');
-              if (!file) {
+              const signatureUploaded=await uploadSignature(ff, user.email);
+              if (!signatureUploaded) {
                 continue;
               }
-              files.push(file.path);
+              files.push(signatureUploaded.path);
             }
           }
           const file=await uploadSignature(allFiles, user.email);
@@ -157,7 +156,6 @@ class DocumentController {
       const fileTypeArray=documentToSign.file.split('.');
       console.log(fileTypeArray, 'file type');
       const imgFile=['jpg', 'png', 'jpeg', 'svg'];
-      const docFile=['pdf'];
       const fileType=fileTypeArray[fileTypeArray.length-1];
       console.log(fileType, 'file type');
       if (!imgFile.includes(fileType)) {
