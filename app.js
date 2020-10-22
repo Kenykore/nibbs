@@ -42,7 +42,7 @@ const userInviteRouter = require('./api/v1/routes/users/invite');
 // recipient router
 const adminRecipientRouter = require('./api/v1/routes/administrators/recipient');
 app.use('/auth', authRouter);
-app.use('/documents', documentRouter)
+app.use('/documents', documentRouter);
 app.use('/mailjet', mailjetRouter);
 app.use('/users', userRouter);
 app.use('/admin/users', adminUserRouter);

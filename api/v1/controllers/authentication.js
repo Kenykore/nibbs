@@ -6,6 +6,8 @@ const response = require('../../../utilities/response');
 const validateReg = require('../../../validations/validate_reg');
 const Tokenizer = require('../../../utilities/tokeniztion');
 const User=require('../../../models/user');
+const Role=require('../../../models/roles');
+
 const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
 /**
  * Authemtication class
@@ -75,6 +77,73 @@ class AuthenticationController {
       });
     } catch (error) {
       console.log(error);
+      return next(error);
+    }
+  }
+  /**
+   * Create a new role
+   *
+   * @param   {Object}  req   [req description]
+   * @param   {Object}  res   [res description]
+   * @param   {Function}  next  [next description]
+   *
+   * @return  {Object}    return role
+   */
+  static async createRole(req, res, next) {
+    try {
+      if (!req.body.name) {
+        return response.sendError({res, message: 'name of role is required'});
+      }
+      const roleCreated=await Role.create(req.body);
+      if (roleCreated) {
+        return response.sendSuccess({res, body: {data: roleCreated}, message: 'Role added successfully'});
+      }
+      return response.sendError({res, message: 'Unable to add role'});
+    } catch (error) {
+      return next(error);
+    }
+  }
+  /**
+   * Get all roles
+   *
+   * @param   {Object}  req   [req description]
+   * @param   {Object}  res   [res description]
+   * @param   {Function}  next  [next description]
+   *
+   * @return  {Object}        [return description]
+   */
+  static async getRole(req, res, next) {
+    try {
+      const roleFound=await Role.find({}).lean();
+      if (roleFound) {
+        return response.sendSuccess({res, message: 'Role found', body: {data: roleFound}});
+      }
+      return response.sendError({res, message: 'No role found', statusCode: status.NOT_FOUND});
+    } catch (error) {
+      return next(error);
+    }
+  }
+  /**
+   * Delete role
+   *
+   * @param   {Object}  req   [req description]
+   * @param   {Object}  res   [res description]
+   * @param   {Function}  next  [next description]
+   *
+   * @return  {Object}        [return description]
+   */
+  static async deleteRole(req, res, next) {
+    try {
+      const roleId=req.params.roleId;
+      if (!roleId) {
+        return response.sendError({res, message: 'Role id is required'});
+      }
+      const roleDeleted=await Role.findByIdAndRemove(roleId);
+      if (roleDeleted) {
+        return response.sendSuccess({res, message: 'Role deleted'});
+      }
+      return response.sendError({res, message: 'Role could not be deleted'});
+    } catch (error) {
       return next(error);
     }
   }
