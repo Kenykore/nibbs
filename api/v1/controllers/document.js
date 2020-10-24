@@ -253,8 +253,8 @@ class DocumentController {
         page.drawImage(pngImage, {
           x: signatureFound.x_coordinate,
           y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-          width: pngDims.width,
-          height: pngDims.height,
+          width: 50,
+          height: 50,
         });
         const pdfBytes = await pdfDoc.save();
         console.log('uploading file');
