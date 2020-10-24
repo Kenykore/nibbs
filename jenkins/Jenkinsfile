@@ -58,6 +58,18 @@ pipeline {
             }
         }
 
+        stage('Slonack') {
+            when {changeRequest()}
+            steps {
+                withCredentials([file(credentialsId: 'slonack', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                dir('Slonack') {
+                     git branch: 'master', credentialsId: 'github-token', url: 'https://github.com/nibss-dev/slonack'
+                     sh 'ls -l'
+                     sh 'python3 src/slonack/slonack.py ${CHANGE_ID} ${SONAR_PROJECT} ${SLACK_CHANNEL} ${SONAR_AUTH} ${SLACK_APP_AUTH}'
+                }
+            }
+        }
+
         stage('Inject to dev') {
             when { branch 'dev#'}
             steps {
