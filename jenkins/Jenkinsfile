@@ -11,7 +11,7 @@ def AnsibleDeploy() {
 pipeline {
     environment {
         IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
-        APP_NAME="MailMerge-Backend"
+        APP_NAME="mailmerge-backend"
         SONAR_PROJECT="nibss-dev_MailMerge-Backend"
         SLACK_CHANNEL="project-mail-merge"
     }
