@@ -11,7 +11,9 @@ def AnsibleDeploy() {
 pipeline {
     environment {
         IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
-        APP_NAME="MailMerge-Backend"
+        APP_NAME="mailmerge-backend"
+        SONAR_PROJECT="nibss-dev_MailMerge-Backend"
+        SLACK_CHANNEL="project-mail-merge"
     }
 
     agent {
@@ -21,9 +23,14 @@ pipeline {
     }
 
     stages {
+        stage('Post to Channel') {
+            steps {
+                slackSend (channel: 'project-mail-merge', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+        }
         stage('Unit-Tests'){
             steps{
-                sh 'npm i && npm test'
+//                 sh 'npm i && npm test'
                 sh 'ls -la'
             }
         }
@@ -47,6 +54,18 @@ pipeline {
               withSonarQubeEnv('SonarCloud') {
                 sh 'ls -al'
                 sh 'sonar-scanner -Dsonar.branch.name=${BRANCH_NAME}'
+                }
+            }
+        }
+
+        stage('Slonack') {
+            when {changeRequest()}
+            steps {
+                withCredentials([file(credentialsId: 'slonack', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                dir('Slonack') {
+                     git branch: 'master', credentialsId: 'github-token', url: 'https://github.com/nibss-dev/slonack'
+                     sh 'ls -l'
+                     sh 'python3 src/slonack/slonack.py ${CHANGE_ID} ${SONAR_PROJECT} ${SLACK_CHANNEL} ${SONAR_AUTH} ${SLACK_APP_AUTH}'
                 }
             }
         }
@@ -146,6 +165,12 @@ pipeline {
         }
     }
     post{
+        success {
+            slackSend (channel: 'project-mail-merge', color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        failure {
+            slackSend (channel: 'project-mail-merge', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
         always{
             cleanWs()
         }

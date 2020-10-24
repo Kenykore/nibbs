@@ -28,3 +28,6 @@ RUN npm install -g sonarqube-scanner @angular/cli && \
     apt install -y ./google-chrome-stable_current_amd64.deb
 
 ENV CHROME_BIN=/usr/bin/google-chrome
+
+RUN apt install -y python-pip python3-pip
+RUN pip3 install dominate requests argparse
