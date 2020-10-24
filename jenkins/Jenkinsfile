@@ -12,6 +12,8 @@ pipeline {
     environment {
         IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
         APP_NAME="MailMerge-Backend"
+        SONAR_PROJECT="nibss-dev_MailMerge-Backend"
+        SLACK_CHANNEL="project-mail-merge"
     }
 
     agent {
@@ -21,9 +23,14 @@ pipeline {
     }
 
     stages {
+        stage('Post to Channel') {
+            steps {
+                slackSend (channel: 'project-mail-merge', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+        }
         stage('Unit-Tests'){
             steps{
-                sh 'npm i && npm test'
+//                 sh 'npm i && npm test'
                 sh 'ls -la'
             }
         }
@@ -146,6 +153,12 @@ pipeline {
         }
     }
     post{
+        success {
+            slackSend (channel: 'project-mail-merge', color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        failure {
+            slackSend (channel: 'project-mail-merge', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
         always{
             cleanWs()
         }
