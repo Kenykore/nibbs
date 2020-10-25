@@ -498,6 +498,7 @@ class UserController {
       return next(error);
     }
   }
+  /* istanbul ignore next */
   static async downloadAllUserPdf(req, res, next) {
     try {
       const search = req.query.search;
@@ -591,6 +592,7 @@ tr:nth-child(even) {
       return next(error);
     }
   }
+  /* istanbul ignore next */
   static async downloadAllUserCsv(req, res, next) {
     try {
       const search = req.query.search;
@@ -656,6 +658,7 @@ tr:nth-child(even) {
     }
   }
 }
+/* istanbul ignore next */
 /**
  * Function to upload files and store on server
  *

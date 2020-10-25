@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const User=require('../../../models/user');
 const Document=require('../../../models/document');
 const objectId= require('mongoose').Types.ObjectId;

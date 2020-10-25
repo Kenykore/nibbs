@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 require('dotenv').config();
 const request = require('request-promise');
 const mailjet = require('node-mailjet')

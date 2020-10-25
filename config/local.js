@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 require('dotenv').config();
 const localConfig = {
   port: process.env.PORT || 9700,

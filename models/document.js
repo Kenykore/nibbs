@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+/* istanbul ignore file */
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
 const documentModel= new mongoose.Schema({

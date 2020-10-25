@@ -1,8 +1,10 @@
+/* istanbul ignore file */
 const helper = require('../../../helpers');
 const UserDB = require('../../../../models/user');
 const Tokenization= require('../../../../utilities/tokeniztion');
 let nonVerifedUser=null;
 let verifedUser=null;
+const fs = require('fs');
 const testData= require('./../../test_data/auth_data/admin_data');
 describe('Test the profile api', () => {
   beforeAll(async () => {
@@ -36,5 +38,19 @@ describe('Test the profile api', () => {
     } catch (error) {
       console.log(error);
     }
+  });
+  test('Registered user should successfully add new Signature to profile', async () => {
+    const formData = {
+      my_field: 'file',
+      my_file: fs.createReadStream('./create.png')
+    };
+    const signatureAdded= await helper.postFormData('/users/add/signature', formData.my_file, verifedUser.body._token).expect(200);
+    expect(signatureAdded.body.data).toBeTruthy();
+    expect(signatureAdded.body.data.signatures.length).toBeGreaterThan(0);
+  });
+  test('Registered user should successfully delete Signature', async () => {
+    await helper.post('/users/remove/signature',
+      {signature: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png'},
+      verifedUser.body._token).expect(200);
   });
 });

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
+/* istanbul ignore file */
 const inviteModel= new mongoose.Schema({
   email: {
     type: String,

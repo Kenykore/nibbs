@@ -146,11 +146,13 @@ class DocumentController {
       }
       const documentToSign= await Document.findById(req.body.documentId).lean();
       const signatories=documentToSign.signatories;
-      const signatureFound=signatories.find((x)=>x.email===user.email);
+      const signatureFound=signatories.find((x)=>{
+        return (x.email===user.email || (x.email===user.email && x.signed));
+      });
       if (!signatureFound) {
         return response.sendError({
           res,
-          message: 'You are not a signatory to this document'
+          message: 'You are not a signatory to this document or have already signed this document'
         });
       }
       const fileTypeArray=documentToSign.file.split('.');
@@ -174,8 +176,8 @@ class DocumentController {
         page.drawImage(pngImage, {
           x: signatureFound.x_coordinate,
           y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-          width: pngDims.width,
-          height: pngDims.height,
+          width: 50,
+          height: 50,
         });
         const pdfBytes = await pdfDoc.save();
         console.log('uploading file');

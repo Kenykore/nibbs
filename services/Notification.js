@@ -1,10 +1,13 @@
-
+/* istanbul ignore file */
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 const config=require('../config/index');
 const hbs = require('nodemailer-express-handlebars');
 const SendEmail = async (details={to: '', from: '', subject: '', template_name: '', bcc: undefined, replyTo: undefined, attachment: undefined}) => {
   try {
+    if (process.env.ENVIRONMENT==='test') {
+      return true;
+    }
     console.log('sending mail started');
     console.log(process.env.SMTP_USERNAME, process.env.SMTP_PASSWORD);
     const transportOptions = {
@@ -62,9 +65,10 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     console.log('sending mail....', emailPayload);
     const res = await transporter.sendMail(emailPayload);
     console.log(res, 'mail sent');
-    return;
+    return true;
   } catch (error) {
     console.log(error, 'mail send error');
+    return false;
   }
 };
 

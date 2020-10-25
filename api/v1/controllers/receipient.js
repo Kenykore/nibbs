@@ -198,7 +198,7 @@ class ReceipientController {
 
       if (recipients && recipients.length) {
         const responseContent = {
-          'total_recipientss': totalrecipients,
+          'total_recipients': totalrecipients,
           'pagination': {
             'current': currentPage,
             'number_of_pages': totalPages,
@@ -240,7 +240,7 @@ class ReceipientController {
 
       if (recipients && recipients.length) {
         const responseContent = {
-          'total_recipientss': totalrecipients,
+          'total_recipients': totalrecipients,
           'pagination': {
             'current': currentPage,
             'number_of_pages': totalPages,
