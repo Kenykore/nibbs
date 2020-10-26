@@ -15,6 +15,12 @@ module.exports = {
     'mobile': '+2348133699506',
     'status': 'active'
   },
+  document_preparation: {
+    documentBody: '<p>This is a demo document 2</p>',
+    recipients: JSON.stringify( [{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com'}]),
+    signatories: JSON.stringify([{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com', 'x_coordinate': 4, 'y_coordinate': 60, 'page': 1}]),
+    documentTitle: 'Test'
+  },
   verified_user: {
     'name': 'OluwakoredeMVX',
     'username': 'kenymvx',

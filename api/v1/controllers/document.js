@@ -38,6 +38,7 @@ class DocumentController {
       if (typeof req.body.signatories ==='string') {
         req.body.signatories=JSON.parse(req.body.signatories);
       }
+      console.log(req.body, 'body');
       const {error} = validatePrepareDocument({...req.body});
       if (error) {
         return response.sendError({
@@ -144,15 +145,27 @@ class DocumentController {
           message: error.details[0].message
         });
       }
+      console.log(user.email);
       const documentToSign= await Document.findById(req.body.documentId).lean();
       const signatories=documentToSign.signatories;
       const signatureFound=signatories.find((x)=>{
-        return (x.email===user.email || (x.email===user.email && x.signed));
+        return (x.email===user.email);
       });
+      console.log(signatureFound, 'signature');
       if (!signatureFound) {
         return response.sendError({
           res,
-          message: 'You are not a signatory to this document or have already signed this document'
+          message: 'You are not signatory to this document'
+        });
+      }
+      const signatureSignedFound=signatories.find((x)=>{
+        return x.email===user.email && x.signed===true;
+      });
+      console.log(signatureSignedFound);
+      if (signatureSignedFound) {
+        return response.sendError({
+          res,
+          message: 'You are have already signed this document'
         });
       }
       const fileTypeArray=documentToSign.file.split('.');
@@ -160,6 +173,7 @@ class DocumentController {
       const imgFile=['jpg', 'png', 'jpeg', 'svg'];
       const fileType=fileTypeArray[fileTypeArray.length-1];
       console.log(fileType, 'file type');
+      console.log(signatureFound, 'signature found');
       if (!imgFile.includes(fileType)) {
         const existingPdf =await fetch(documentToSign.file);
         const signatureImage = await fetch(req.body.signature);
@@ -192,7 +206,7 @@ class DocumentController {
             message: 'Unable to sign document'
           });
         }
-        const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
+        let documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
           'signatories.$.signature': req.body.signature,
           'signatories.$.signed': true,
           'file': file.path
@@ -205,7 +219,7 @@ class DocumentController {
           });
           if (checkSignatureAllSigned(documentUpdated.signatories)) {
             console.log('ready to send doc');
-            await Document.findByIdAndUpdate(req.body.documentId, {signed: true}).lean();
+            documentUpdated= await Document.findByIdAndUpdate(req.body.documentId, {signed: true}, {new: true}).lean();
             for (const s of documentUpdated.recipients) {
               await sendEmail({
                 to: s.email,
@@ -313,7 +327,7 @@ class DocumentController {
         });
       }
     } catch (error) {
-      console.log(error);
+      console.log(error, 'error of sign doc');
       return next(error);
     }
   }
