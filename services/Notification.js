@@ -47,8 +47,8 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
       replyTo: details.replyTo || 'info@zeedas.com',
       attachments: details.attachment?details.attachment:[],
       bcc: details.bcc === undefined ?
-        ['moshood.korede@hotmail.com', 'kenykore@gmail.com'] :
-        ['moshood.korede@hotmail.com', 'martha@natterbase.com', ...details.bcc],
+        [] :
+        [...details.bcc],
       subject: config.node_environment !== 'development' &&
       config.node_environment !== 'staging' ? details.subject:`[${config.node_environment}] ${details.subject}`,
       template: `${details.template_name}`,
