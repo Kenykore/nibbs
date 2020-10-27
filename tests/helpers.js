@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const request = require('supertest');
 const app = require('../app');
 const config= require('../config/index');
@@ -11,12 +12,18 @@ exports.post = function(url, body, header) {
   }
   return httpRequest;
 };
-exports.postFormData = function(url, body, header) {
+exports.postFormData = function(url, body, header, data=null) {
   const httpRequest = request(app).post(url);
   httpRequest.attach('file', body);
+  if (data) {
+    for (const o of Object.keys(data)) {
+      httpRequest.field(o, data[o]);
+    }
+  }
   if (header !== null && header !== undefined) {
     httpRequest.set('Authorization', `Bearer ${header}`);
   }
+  httpRequest.set('Content-Type', 'application/x-www-form-urlencoded');
   return httpRequest;
 };
 exports.get = function(url, query, header) {

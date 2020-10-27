@@ -1,4 +1,4 @@
-
+/* istanbul ignore file */
 const port= process.env.PORT || 9700;
 const path = require('path');
 const fileUpload = require('express-fileupload');
@@ -8,7 +8,7 @@ const logger = require('morgan');
 const methodOverride = require('method-override');
 const cors = require('cors');
 const app = express();
-
+app.disable('x-powered-by');
 
 // 2.Express Configuration
 app.use(logger('dev'));

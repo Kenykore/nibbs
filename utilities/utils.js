@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 'use strict';
 require('dotenv').config();
 const fetch = require('node-fetch');

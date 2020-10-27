@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 require('dotenv').config();
 const config = require('./config/index');
 const app=require('./app');

@@ -4,7 +4,7 @@ const response = require('./response');
 
 /**
  * Class for error handling
- */
+ /* istanbul ignore file */
 class ErrorHandler {
   /**
      * methods to return error messafes
@@ -15,8 +15,8 @@ class ErrorHandler {
      * @return  {Object}
      */
   static handleError(err, req, res) {
-    const error_stack = (process.env.ENVIRONMENT !== 'production') ? err.stack : {};
-    return response.sendFatalError({res, error: err.errors, message: err.message, error_stack});
+    const errorStack = (process.env.ENVIRONMENT !== 'production') ? err.stack : {};
+    return response.sendFatalError({res, error: err.errors, message: err.message, errorStack});
   }
 }
 
