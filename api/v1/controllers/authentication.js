@@ -31,16 +31,6 @@ class AuthenticationController {
           message: error.details[0].message
         });
       }
-      const options = {
-        method: 'GET',
-        uri: `http://vi-singleauth.nibss-plc.com/singleauth/login`,
-        headers: {
-          Authorization: 'Basic ' + Buffer.from(req.body.username + ':' + req.body.password).toString('base64')
-        },
-        json: true // Automatically stringifies the body to JSON
-      };
-      // const userDetailstwo = await request(options);
-      // console.log(userDetailstwo, 'user details from SSO');
       const userDetails={
         data: {
           email: req.body.email || '',

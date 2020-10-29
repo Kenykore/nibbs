@@ -30,7 +30,7 @@ class DocumentController {
       }
       console.log(req.files, 'files to upload');
       const user=req.userDetails;
-      const files=[];
+
       console.log(req.body, 'body');
       if (typeof req.body.recipients ==='string') {
         req.body.recipients=JSON.parse(req.body.recipients);
@@ -46,49 +46,11 @@ class DocumentController {
           message: error.details[0].message
         });
       }
-      for (const f of Object.keys(req.files)) {
-        const allFiles=req.files[f];
-        console.log(allFiles, 'file');
-        if (Array.isArray(allFiles)) {
-          for (const ff of allFiles) {
-            const fileUploaded=await uploadFile(ff, user.email);
-            console.log(fileUploaded, 'file uploaded');
-            if (!fileUploaded) {
-              continue;
-            }
-            files.push({path: fileUploaded.path, publicId: fileUploaded.publicId});
-          }
-        }
-        const file=await uploadFile(allFiles, user.email);
-        console.log(file, 'file uploaded');
-        if (!file) {
-          continue;
-        }
-        files.push({path: file.path, publicId: file.publicId});
-      }
+      const files=await processFiles(req, user);
       const documentPrepared= await Document.create({...req.body, file: files[0].path, publicId: files[0].publicId, ownerId: user.userId});
       // send to all signatories
       if (documentPrepared) {
-        for (const s of req.body.signatories) {
-          const userFound=await User.findOne({email: s.email}).lean();
-          const accessToken = Tokenizer.signToken({
-            ...userFound,
-            userId: userFound._id || undefined,
-            verified: true
-          });
-          console.log(process.env.BASE_URL, 'base url');
-          await sendEmail({
-            to: s.email,
-            from: 'e-signaturenotification@nibss-plc.com.ng',
-            subject: 'Signature Required on Mail Merge NIBSS',
-            template_name: 'signature-required',
-            data: {
-              name: s.name,
-              title: documentPrepared.documentTitle,
-              url: `${process.env.BASE_URL}/append-document-open/${documentPrepared._id}/${accessToken}`
-            }
-          });
-        }
+        await sendDocuments(req.body.signatories, documentPrepared);
         await DocumentLog.create({
           log: `${user.name} prepared document for signing`,
           ownerId: user.userId,
@@ -108,36 +70,19 @@ class DocumentController {
   static async signDocument(req, res, next) {
     try {
       const user=req.userDetails;
-      if (req.files && Object.keys(req.files).length > 0) {
-        const files=[];
-        for (const f of Object.keys(req.files)) {
-          const allFiles=req.files[f];
 
-          console.log(allFiles, 'file');
-          if (Array.isArray(allFiles)) {
-            for (const ff of allFiles) {
-              const signatureUploaded=await uploadSignature(ff, user.email);
-              if (!signatureUploaded) {
-                continue;
-              }
-              files.push(signatureUploaded.path);
-            }
-          }
-          const file=await uploadSignature(allFiles, user.email);
-          console.log(file, 'file uploaded');
-          if (!file) {
-            continue;
-          }
-          files.push(file.path);
-        }
-        if (files.length===0) {
-          return response.sendError({res, message: 'Could not upload signature'});
-        }
+      const files= await saveSignature(req, user);
+      console.log(files, 'files');
+      if (files.length===0 && (req.files && Object.keys(req.files).length > 0)) {
+        return response.sendError({res, message: 'Could not upload signature'});
+      }
+      if (files.length>0) {
         req.body.signature=files[0];
         await User.findByIdAndUpdate(user.userId, {
           $push: {signatures: files[0]}
         });
       }
+
       const {error} = validateSignDocument({...req.body});
       if (error) {
         return response.sendError({
@@ -220,25 +165,7 @@ class DocumentController {
           if (checkSignatureAllSigned(documentUpdated.signatories)) {
             console.log('ready to send doc');
             documentUpdated= await Document.findByIdAndUpdate(req.body.documentId, {signed: true}, {new: true}).lean();
-            for (const s of documentUpdated.recipients) {
-              await sendEmail({
-                to: s.email,
-                from: 'e-signaturenotification@nibss-plc.com.ng',
-                subject: 'Document Signed on Mail Merge NIBSS',
-                template_name: 'document-signed',
-                data: {
-                  name: s.name,
-                  title: documentUpdated.documentTitle,
-                  body: documentUpdated.documentBody,
-                  campaignId: documentUpdated._id,
-                  url: documentUpdated.file
-                },
-                attachment: [{
-                  filename: `${documentUpdated.documentTitle}.pdf`,
-                  path: documentUpdated.file
-                }]
-              });
-            }
+            await sendDocumentToRecipients(documentUpdated);
           }
           console.log('done');
           return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
@@ -299,25 +226,7 @@ class DocumentController {
           if (checkSignatureAllSigned(documentUpdated.signatories)) {
             console.log('ready to send doc');
             await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
-            for (const s of documentUpdated.recipients) {
-              await sendEmail({
-                to: s.email,
-                from: 'e-signaturenotification@nibss-plc.com.ng',
-                subject: 'Document Signed on Mail Merge NIBSS',
-                template_name: 'document-signed',
-                data: {
-                  name: s.name,
-                  title: documentUpdated.documentTitle,
-                  body: documentUpdated.documentBody,
-                  url: documentUpdated.file,
-                  campaignId: documentUpdated._id
-                },
-                attachment: [{
-                  filename: `${documentUpdated.documentTitle}.pdf`,
-                  path: documentUpdated.file
-                }]
-              });
-            }
+            await sendDocumentToRecipients(documentUpdated);
           }
           return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
         }
@@ -416,6 +325,150 @@ class DocumentController {
       console.log(error);
       return next(error);
     }
+  }
+}
+/**
+ * Process file upload
+ *@param {Object} req object
+ @param {Object} user
+ * @return  {Array}  return file array
+ */
+async function processFiles(req, user) {
+  try {
+    const files=[];
+    for (const f of Object.keys(req.files)) {
+      const allFiles=req.files[f];
+      console.log(allFiles, 'file');
+      if (Array.isArray(allFiles)) {
+        for (const ff of allFiles) {
+          const fileUploaded=await uploadFile(ff, user.email);
+          console.log(fileUploaded, 'file uploaded');
+          if (!fileUploaded) {
+            continue;
+          }
+          files.push({path: fileUploaded.path, publicId: fileUploaded.publicId});
+        }
+      }
+      const file=await uploadFile(allFiles, user.email);
+      console.log(file, 'file uploaded');
+      if (!file) {
+        continue;
+      }
+      files.push({path: file.path, publicId: file.publicId});
+    }
+    return files;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+/**
+ * Save signature in cloud
+ *
+ * @param   {Object}  req  [req description]
+ * @param {Object} user
+ *
+ * @return  {Array}       [return description]
+ */
+async function saveSignature(req, user) {
+  try {
+    const files=[];
+    for (const f of Object.keys(req.files)) {
+      const allFiles=req.files[f];
+
+      console.log(allFiles, 'file');
+      if (Array.isArray(allFiles)) {
+        for (const ff of allFiles) {
+          const signatureUploaded=await uploadSignature(ff, user.email);
+          if (!signatureUploaded) {
+            continue;
+          }
+          files.push(signatureUploaded.path);
+        }
+      }
+      const file=await uploadSignature(allFiles, user.email);
+      console.log(file, 'file uploaded');
+      if (!file) {
+        continue;
+      }
+      files.push(file.path);
+    }
+    return files;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+/**
+ * Send document to recipients
+ *
+ * @param   {Object}  documentUpdated  [documentUpdated description]
+ *
+ * @return  {Boolean}                   [return description]
+ */
+async function sendDocumentToRecipients(documentUpdated) {
+  try {
+    const filename=`${documentUpdated.documentTitle}.pdf`;
+    for (const s of documentUpdated.recipients) {
+      await sendEmail({
+        to: s.email,
+        from: 'e-signaturenotification@nibss-plc.com.ng',
+        subject: 'Document Signed on Mail Merge NIBSS',
+        template_name: 'document-signed',
+        data: {
+          name: s.name,
+          title: documentUpdated.documentTitle,
+          body: documentUpdated.documentBody,
+          campaignId: documentUpdated._id,
+          url: documentUpdated.file
+        },
+        attachment: [{
+          filename: filename,
+          path: documentUpdated.file
+        }]
+      });
+    }
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+/**
+ * Send document to signatories
+ *
+ * @param   {Array}  signatories  [signatories description]
+ * @param {Object} documentPrepared document prepared
+ *
+ * @return  {Boolean}               [return description]
+ */
+async function sendDocuments(signatories, documentPrepared) {
+  try {
+    for (const s of signatories) {
+      const userFound=await User.findOne({email: s.email}).lean();
+      const accessToken = Tokenizer.signToken({
+        ...userFound,
+        userId: userFound._id || undefined,
+        verified: true
+      });
+      const url=`${process.env.BASE_URL}/append-document-open/${documentPrepared._id}/${accessToken}`;
+      console.log(process.env.BASE_URL, 'base url');
+      await sendEmail({
+        to: s.email,
+        from: 'e-signaturenotification@nibss-plc.com.ng',
+        subject: 'Signature Required on Mail Merge NIBSS',
+        template_name: 'signature-required',
+        data: {
+          name: s.name,
+          title: documentPrepared.documentTitle,
+          url: url
+        }
+      });
+    }
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
   }
 }
 /**
