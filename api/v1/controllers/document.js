@@ -47,6 +47,7 @@ class DocumentController {
         });
       }
       const files=await processFiles(req, user);
+      console.log(files[0].path, 'prepare file');
       const documentPrepared= await Document.create({...req.body, file: files[0].path, publicId: files[0].publicId, ownerId: user.userId});
       // send to all signatories
       if (documentPrepared) {
@@ -71,9 +72,9 @@ class DocumentController {
     try {
       const user=req.userDetails;
 
-      const files= await saveSignature(req, user);
+      const files=req.files?await saveSignature(req, user):[];
       console.log(files, 'files');
-      if (files.length===0 && (req.files && Object.keys(req.files).length > 0)) {
+      if (files.length===0 && req.files) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
       if (files.length>0) {
@@ -120,120 +121,9 @@ class DocumentController {
       console.log(fileType, 'file type');
       console.log(signatureFound, 'signature found');
       if (!imgFile.includes(fileType)) {
-        const existingPdf =await fetch(documentToSign.file);
-        const signatureImage = await fetch(req.body.signature);
-        const signatureTypeArray=req.body.signature.split('.');
-        const signatureType=signatureTypeArray[signatureTypeArray.length-1];
-        const existingPdfBytes=await existingPdf.buffer();
-        const signatureImageBytes=await signatureImage.buffer();
-        const pdfDoc = await PDFDocument.load(existingPdfBytes);
-        console.log(pdfDoc, 'pdf');
-        const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
-        const pngDims = pngImage.scale(0.5);
-        // Add a blank page to the document
-        const page = pdfDoc.getPage(Number(signatureFound.page) || 0);
-        page.drawImage(pngImage, {
-          x: signatureFound.x_coordinate,
-          y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-          width: 50,
-          height: 50,
-        });
-        const pdfBytes = await pdfDoc.save();
-        console.log('uploading file');
-        const id='temp.pdf';
-        const fileSaved=await saveFile(pdfBytes, id);
-        console.log(fileSaved, 'file saved');
-        const file=await uploadSignedDoc(id, documentToSign.publicId);
-        console.log(file, 'file upload response');
-        if (!file) {
-          return response.sendError({
-            res,
-            message: 'Unable to sign document'
-          });
-        }
-        let documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
-          'signatories.$.signature': req.body.signature,
-          'signatories.$.signed': true,
-          'file': file.path
-        }, {new: true});
-        if (documentUpdated) {
-          await DocumentLog.create({
-            log: `${user.name} signed document`,
-            ownerId: user.userId,
-            documentId: documentUpdated._id
-          });
-          if (checkSignatureAllSigned(documentUpdated.signatories)) {
-            console.log('ready to send doc');
-            documentUpdated= await Document.findByIdAndUpdate(req.body.documentId, {signed: true}, {new: true}).lean();
-            await sendDocumentToRecipients(documentUpdated);
-          }
-          console.log('done');
-          return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
-        }
-        return response.sendError({
-          res,
-          message: 'Unable to sign document'
-        });
+        return await processDocument(res, req, documentToSign, user, signatureFound);
       } else {
-        const pdfDoc = await PDFDocument.create();
-
-        const signatureImage = await fetch(req.body.signature);
-        const signatureTypeArray=req.body.signature.split('.');
-        const signatureType=signatureTypeArray[signatureTypeArray.length-1];
-        const pdfImage=await fetch(documentToSign.file);
-        const signatureImageBytes=await signatureImage.buffer();
-        const pdfImageBuffer=await pdfImage.buffer();
-        const pdfImageEmbed = fileType==='jpg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
-        const pngImage =signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
-        const pngDims = pngImage.scale(0.5);
-        const page = pdfDoc.addPage([pdfImageEmbed.width, pdfImageEmbed.height]);
-        page.drawImage(pdfImageEmbed, {
-          x: 0,
-          y: 0,
-          width: page.getWidth(),
-          height: page.getHeight(),
-        });
-        page.drawImage(pngImage, {
-          x: signatureFound.x_coordinate,
-          y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-          width: 50,
-          height: 50,
-        });
-        const pdfBytes = await pdfDoc.save();
-        console.log('uploading file');
-        const id='tempdoc.pdf';
-        const fileSaved=await saveFile(pdfBytes, id);
-        console.log(fileSaved, 'file saved');
-        const file=await uploadSignedDoc(id, documentToSign.publicId);
-        console.log(file, 'file upload response');
-        if (!file) {
-          return response.sendError({
-            res,
-            message: 'Unable to sign document'
-          });
-        }
-        const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
-          'signatories.$.signature': req.body.signature,
-          'signatories.$.signed': true,
-          'file': file.path
-        }, {new: true}).lean();
-        if (documentUpdated) {
-          await DocumentLog.create({
-            log: `${user.name} signed document`,
-            ownerId: user.userId,
-            documentId: documentUpdated._id
-          });
-          if (checkSignatureAllSigned(documentUpdated.signatories)) {
-            console.log('ready to send doc');
-            await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
-            await sendDocumentToRecipients(documentUpdated);
-          }
-          return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
-        }
-        return response.sendError({
-          res,
-          message: 'Unable to sign document'
-        });
+        return await processImageDocument(res, req, documentToSign, user,signatureFound);
       }
     } catch (error) {
       console.log(error, 'error of sign doc');
@@ -328,10 +218,156 @@ class DocumentController {
   }
 }
 /**
+ * Process pdf for image type doc file
+ *@param {Object} res
+ * @param   {Object}  req             [req description]
+ * @param   {Object}  documentToSign  [documentToSign description]
+ * @param   {Object}  user            [user description]
+ *@param {any} signatureFound
+ * @return  {Promise<any>}                  [return description]
+ */
+async function processImageDocument(res, req, documentToSign, user, signatureFound) {
+  try {
+    const pdfDoc = await PDFDocument.create();
+
+    const signatureImage = await fetch(req.body.signature);
+    const signatureTypeArray=req.body.signature.split('.');
+    const signatureType=signatureTypeArray[signatureTypeArray.length-1];
+    const pdfImage=await fetch(documentToSign.file);
+    const signatureImageBytes=await signatureImage.buffer();
+    const pdfImageBuffer=await pdfImage.buffer();
+    const pdfImageEmbed = fileType==='jpg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
+    const pngImage =signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
+    const pngDims = pngImage.scale(0.5);
+    const page = pdfDoc.addPage([pdfImageEmbed.width, pdfImageEmbed.height]);
+    page.drawImage(pdfImageEmbed, {
+      x: 0,
+      y: 0,
+      width: page.getWidth(),
+      height: page.getHeight(),
+    });
+    page.drawImage(pngImage, {
+      x: signatureFound.x_coordinate,
+      y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
+      width: 50,
+      height: 50,
+    });
+    const pdfBytes = await pdfDoc.save();
+    console.log('uploading file');
+    const id='tempdoc.pdf';
+    const fileSaved=await saveFile(pdfBytes, id);
+    console.log(fileSaved, 'file saved');
+    const file=await uploadSignedDoc(id, documentToSign.publicId);
+    console.log(file, 'file upload response');
+    if (!file) {
+      return response.sendError({
+        res,
+        message: 'Unable to sign document'
+      });
+    }
+    const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
+      'signatories.$.signature': req.body.signature,
+      'signatories.$.signed': true,
+      'file': file.path
+    }, {new: true}).lean();
+    if (documentUpdated) {
+      await DocumentLog.create({
+        log: `${user.name} signed document`,
+        ownerId: user.userId,
+        documentId: documentUpdated._id
+      });
+      if (checkSignatureAllSigned(documentUpdated.signatories)) {
+        console.log('ready to send doc');
+        await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
+        await sendDocumentToRecipients(documentUpdated);
+      }
+      return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
+    }
+    return response.sendError({
+      res,
+      message: 'Unable to sign document'
+    });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+/**
+ * [async description]
+ *@param {Object} res
+ * @param   {Object}  req             [req description]
+ * @param   {Object}  documentToSign  [documentToSign description]
+ * @param   {Object}  user          [user description]
+ *@param {any} signatureFound
+ * @return  {Promise<any>}                  [return description]
+ */
+async function processDocument(res, req, documentToSign, user, signatureFound) {
+  try {
+    console.log(documentToSign.file, 'file');
+    const existingPdf =await fetch(documentToSign.file);
+    const signatureImage = await fetch(req.body.signature);
+    const signatureTypeArray=req.body.signature.split('.');
+    const signatureType=signatureTypeArray[signatureTypeArray.length-1];
+    const existingPdfBytes=await existingPdf.buffer();
+    const signatureImageBytes=await signatureImage.buffer();
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    console.log(pdfDoc, 'pdf');
+    const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
+    const pngDims = pngImage.scale(0.5);
+    // Add a blank page to the document
+    const page = pdfDoc.getPage(Number(signatureFound.page) || 0);
+    page.drawImage(pngImage, {
+      x: signatureFound.x_coordinate,
+      y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
+      width: 50,
+      height: 50,
+    });
+    const pdfBytes = await pdfDoc.save();
+    console.log('uploading file');
+    const id='temp.pdf';
+    const fileSaved=await saveFile(pdfBytes, id);
+    console.log(fileSaved, 'file saved');
+    const file=await uploadSignedDoc(id, documentToSign.publicId);
+    console.log(file, 'file upload response');
+    if (!file) {
+      return response.sendError({
+        res,
+        message: 'Unable to sign document'
+      });
+    }
+    let documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
+      'signatories.$.signature': req.body.signature,
+      'signatories.$.signed': true,
+      'file': file.path
+    }, {new: true});
+    if (documentUpdated) {
+      await DocumentLog.create({
+        log: `${user.name} signed document`,
+        ownerId: user.userId,
+        documentId: documentUpdated._id
+      });
+      if (checkSignatureAllSigned(documentUpdated.signatories)) {
+        console.log('ready to send doc');
+        documentUpdated= await Document.findByIdAndUpdate(req.body.documentId, {signed: true}, {new: true}).lean();
+        await sendDocumentToRecipients(documentUpdated);
+      }
+      console.log('done');
+      return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
+    }
+    return response.sendError({
+      res,
+      message: 'Unable to sign document'
+    });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+/**
  * Process file upload
  *@param {Object} req object
  @param {Object} user
- * @return  {Array}  return file array
+ * @return  {Promise<Array>}  return file array
  */
 async function processFiles(req, user) {
   try {
@@ -368,7 +404,7 @@ async function processFiles(req, user) {
  * @param   {Object}  req  [req description]
  * @param {Object} user
  *
- * @return  {Array}       [return description]
+ * @return  {Promise<Array>}       [return description]
  */
 async function saveSignature(req, user) {
   try {
@@ -404,7 +440,7 @@ async function saveSignature(req, user) {
  *
  * @param   {Object}  documentUpdated  [documentUpdated description]
  *
- * @return  {Boolean}                   [return description]
+ * @return  {Promise<Boolean>}                   [return description]
  */
 async function sendDocumentToRecipients(documentUpdated) {
   try {
@@ -440,7 +476,7 @@ async function sendDocumentToRecipients(documentUpdated) {
  * @param   {Array}  signatories  [signatories description]
  * @param {Object} documentPrepared document prepared
  *
- * @return  {Boolean}               [return description]
+ * @return  {Promise<Boolean>}               [return description]
  */
 async function sendDocuments(signatories, documentPrepared) {
   try {

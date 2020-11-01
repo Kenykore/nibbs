@@ -651,7 +651,7 @@ async function uploadFile(f, userId) {
  * @param   {Object}  req   [req description]
  * @param   {Object}  user  [user description]
  *
- * @return  {Array}        [return description]
+ * @return  {Promise<Array>}        [return description]
  */
 async function saveSignature(req, user) {
   try {
