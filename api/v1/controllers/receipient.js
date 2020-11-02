@@ -157,13 +157,8 @@ class ReceipientController {
   }
   static async fetchAllTag(req, res, next) {
     try {
-    //   const tagPerPage = parseInt(req.query.limit) || 10;
-    //   const currentPage = parseInt(req.query.page) || 0;
-    //   const skip = currentPage * tagPerPage;
-
       const totaltag = await Tag.find({}).countDocuments();
       const tag = await Tag.find().sort({_id: 'desc'});
-      //   const totalPages = Math.ceil(totaltag / tagPerPage);
 
       if (tag && tag.length) {
         const responseContent = {
