@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const helper = require('../../../helpers');
 const UserDB = require('../../../../models/user');
 const InviteDB = require('../../../../models/invite');
@@ -7,22 +8,21 @@ let nonVerifedInvitedUser=null;
 let nonInvitedUser=null;
 const fs = require('fs');
 
-describe('Test the invite api', () => {
+describe('Test the user invite api', () => {
   beforeAll(async () => {
-    await UserDB.create(testData.verified_user);
-    await InviteDB.create(testData.invited_user);
+    await UserDB.create(testData.invited_user);
     //   return mysqlDB.connect();
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return Promise.all([UserDB.db.dropCollection('users'), InviteDB.db.dropCollection('invites')]);
+    return UserDB.db.dropCollection('users');
   });
   test('Non-registered invited user should successfully sign in via SSO and complete invite', async () => {
     nonVerifedInvitedUser = await helper.post('/auth/login', testData.invited_user_unverified, null).expect(200);
     expect(nonVerifedInvitedUser.body._token).toBeTruthy();
     expect(nonVerifedInvitedUser.body.data).toBeTruthy();
     const decodedToken= Tokenization.verifyToken(nonVerifedInvitedUser.body._token);
-    expect(decodedToken.data.verified).toBeFalsy();
+    expect(decodedToken.data.verified).toBeTruthy();
     const formData = {
       my_field: 'file',
       my_file: fs.createReadStream('./create.png')

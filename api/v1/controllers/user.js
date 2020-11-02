@@ -90,42 +90,21 @@ class UserController {
           message: 'Invite Already completed'
         });
       }
-      const files=[];
-      for (const f of Object.keys(req.files)) {
-        const allFiles=req.files[f];
+      const files=await saveSignature(req, user);
 
-        console.log(allFiles, 'file');
-        if (Array.isArray(allFiles)) {
-          for (const ff of allFiles) {
-            const file=await uploadFile(ff, user.email);
-            console.log(file, 'file uploaded');
-            if (!file) {
-              continue;
-            }
-            files.push(file.path);
-          }
-        }
-        const file=await uploadFile(allFiles, user.email);
-        console.log(file, 'file uploaded');
-        if (!file) {
-          continue;
-        }
-        files.push(file.path);
-      }
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
       console.log(user, 'user');
       if (inviteFound) {
-        const userCreated= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
-        console.log(userCreated, 'user created');
-        if (userCreated) {
+        const userFound= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
+        if (userFound) {
           const accessToken = Tokenizer.signToken({
-            ...userCreated.toObject(),
-            userId: userCreated._id,
+            ...userFound.toObject(),
+            userId: userFound._id,
             verified: true
           });
-          return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
+          return response.sendSuccess({res, message: 'User created Successfully', body: {data: userFound, _token: accessToken}});
         }
         return response.sendError({res, message: 'Unable to create User'});
       }
@@ -152,28 +131,7 @@ class UserController {
       console.log(req.files, 'files to upload');
       const user=req.userDetails;
       const userFound=await User.findById(user.userId);
-      const files=[];
-      for (const f of Object.keys(req.files)) {
-        const allFiles=req.files[f];
-
-        console.log(allFiles, 'file');
-        if (Array.isArray(allFiles)) {
-          for (const ff of allFiles) {
-            const file=await uploadFile(ff, user.email);
-            console.log(file, 'file uploaded');
-            if (!file) {
-              continue;
-            }
-            files.push(file.path);
-          }
-        }
-        const file=await uploadFile(allFiles, user.email);
-        console.log(file, 'file uploaded');
-        if (!file) {
-          continue;
-        }
-        files.push(file.path);
-      }
+      const files=await saveSignature(req, user);
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
@@ -501,11 +459,9 @@ class UserController {
       return next(error);
     }
   }
+  /* istanbul ignore next */
   static async downloadAllUserPdf(req, res, next) {
     try {
-      const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 1;
-      const skip = (currentPage-1) * usersPerPage;
       const search = req.query.search;
       const searchObject={
       };
@@ -559,7 +515,7 @@ tr:nth-child(even) {
     <th>Status</th>
   </tr>
  `;
-        for (let u=0; u<users.length; u++) {
+        users.forEach((x, u)=>{
           console.log(u, 'users');
           htmlString= htmlString + `
           <tr>
@@ -572,7 +528,7 @@ tr:nth-child(even) {
           <td>${users[u].status || 'N/A'}</td>
         </tr>
           `;
-        }
+        });
         htmlString= htmlString + `
         </table>
 </body>
@@ -597,11 +553,9 @@ tr:nth-child(even) {
       return next(error);
     }
   }
+  /* istanbul ignore next */
   static async downloadAllUserCsv(req, res, next) {
     try {
-      const usersPerPage = parseInt(req.query.limit) || 10;
-      const currentPage = parseInt(req.query.page) || 1;
-      const skip = (currentPage-1) * usersPerPage;
       const search = req.query.search;
       const searchObject={
       };
@@ -665,6 +619,7 @@ tr:nth-child(even) {
     }
   }
 }
+/* istanbul ignore next */
 /**
  * Function to upload files and store on server
  *
@@ -688,6 +643,43 @@ async function uploadFile(f, userId) {
   } catch (error) {
     console.log(error);
     return false;
+  }
+}
+/**
+ * Save user signature to cloud
+ *
+ * @param   {Object}  req   [req description]
+ * @param   {Object}  user  [user description]
+ *
+ * @return  {Promise<Array>}        [return description]
+ */
+async function saveSignature(req, user) {
+  try {
+    const files=[];
+    for (const f of Object.keys(req.files)) {
+      const allFiles=req.files[f];
+
+      console.log(allFiles, 'file');
+      if (Array.isArray(allFiles)) {
+        for (const ff of allFiles) {
+          const fileUploaded=await uploadFile(ff, user.email);
+          if (!fileUploaded) {
+            continue;
+          }
+          files.push(fileUploaded.path);
+        }
+      }
+      const file=await uploadFile(allFiles, user.email);
+      console.log(file, 'file uploaded');
+      if (!file) {
+        continue;
+      }
+      files.push(file.path);
+    }
+    return files;
+  } catch (error) {
+    console.log(error);
+    return [];
   }
 }
 module.exports=UserController;

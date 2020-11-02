@@ -1,4 +1,4 @@
-
+/* istanbul ignore file */
 const port= process.env.PORT || 9700;
 const path = require('path');
 const fileUpload = require('express-fileupload');
@@ -8,7 +8,7 @@ const logger = require('morgan');
 const methodOverride = require('method-override');
 const cors = require('cors');
 const app = express();
-
+app.disable('x-powered-by');
 
 // 2.Express Configuration
 app.use(logger('dev'));
@@ -42,7 +42,7 @@ const userInviteRouter = require('./api/v1/routes/users/invite');
 // recipient router
 const adminRecipientRouter = require('./api/v1/routes/administrators/recipient');
 app.use('/auth', authRouter);
-app.use('/documents', documentRouter)
+app.use('/documents', documentRouter);
 app.use('/mailjet', mailjetRouter);
 app.use('/users', userRouter);
 app.use('/admin/users', adminUserRouter);
