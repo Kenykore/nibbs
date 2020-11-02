@@ -19,6 +19,7 @@ def StopMongoContainer() {
 
 pipeline {
     environment {
+        BUILD_HOSTNAME="${sh(script: ' head -1 /proc/self/cgroup | cut -d/ -f3 | tr -d \'[:space:]\' ', returnStdout: true ) }"
         IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
         APP_NAME="mailmerge-backend"
         SONAR_PROJECT="nibss-dev_MailMerge-Backend"
