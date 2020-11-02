@@ -30,7 +30,7 @@ pipeline {
         }
         stage('Unit-Tests'){
             steps{
-//                 sh 'npm i && npm test'
+                sh 'npm i && npm test'
                 sh 'ls -la'
             }
         }
