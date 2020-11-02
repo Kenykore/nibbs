@@ -10,7 +10,7 @@ def AnsibleDeploy() {
 
 def StartMongoContainer() {
     sh "docker run --name mongo-${BUILD_HOSTNAME} --rm --network=container:${BUILD_HOSTNAME} -e 'ACCEPT_EULA=Y' -d mongo:4.4"
-    sh 'echo ${ENV} | base64 --decode > .env && sleep 10'
+    sh "mv .env-test .env && sleep 10"
 }
 
 def StopMongoContainer() {
@@ -23,7 +23,6 @@ pipeline {
         APP_NAME="mailmerge-backend"
         SONAR_PROJECT="nibss-dev_MailMerge-Backend"
         SLACK_CHANNEL="project-mail-merge"
-        ENV='RU5WSVJPTk1FTlQ9ClBPUlQ9ClNNVFBfVVNFUk5BTUU9ClNNVFBfUEFTU1dPUkQ9CkNMT1VESU5BUllfVVJMPWNsb3VkaW5hcnk6Ly8zNDg2OTYzNTIyOTY1MjQ6TGJHNnlJX1ZGbFNHT3ROOW1uX0lPZG1lcFljQGNvbWVzdGlibGVzClRFU1RfREJfVVJMPW1vbmdvZGIrc3J2Oi8vVEVTVDU2OlRFU1Q1NkAxMjcuMC4wLjE6MjcwMTcvbmliYnN0ZXN0P3JldHJ5V3JpdGVzPXRydWUmdz1tYWpvcml0eQoKREVWX0RCX1VSTD0KClNUQUdJTkdfREJfVVJMPQpQUk9EVUNUSU9OX0RCX1VSTD0KSldUX1NFQ1JFVF9LRVk9Cg=='
     }
 
     agent {
