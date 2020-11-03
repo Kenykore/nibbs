@@ -172,9 +172,11 @@ class UserController {
           },
           'data': users
         };
-        return response.sendSuccess({res, message: 'Users  found', body: responseContent});
+        const successString='Users  found';
+        return response.sendSuccess({res, message: successString, body: responseContent});
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      const failureString='No User found';
+      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);
@@ -182,12 +184,13 @@ class UserController {
   }
   static async fetchSpecificUser(req, res, next) {
     try {
+      const failureString='User id is missing in request parameters';
       if (!req.params.userId) {
-        return response.sendError({res, message: 'User id is missing in request parameters'});
+        return response.sendError({res, message: failureString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-        return response.sendError({res, message: 'Invalid User id'});
+        return response.sendError({res, message: failureString});
       }
 
       const user=await User.findById(req.params.userId).lean();
