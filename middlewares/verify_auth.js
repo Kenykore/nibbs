@@ -8,14 +8,16 @@ const response = require('../utilities/response');
 const Secure = {
   verifyUser(req, res, next) {
     let token = req.header('Authorization');
+    const authFailure='Authorization token not found';
+    const authFormatFailure='Invalid authorization string. Token must start with Bearer';
     if (!token) {
-      return response.sendError({res, message: 'Authorization token not found', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
     }
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);
     } else {
-      return response.sendError({res, message: 'Invalid authorization string. Token must start with Bearer', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
     }
 
     try {

@@ -123,7 +123,7 @@ class DocumentController {
       if (!imgFile.includes(fileType)) {
         return await processDocument(res, req, documentToSign, user, signatureFound);
       } else {
-        return await processImageDocument(res, req, documentToSign, user,signatureFound);
+        return await processImageDocument(res, req, documentToSign, user, signatureFound);
       }
     } catch (error) {
       console.log(error, 'error of sign doc');
@@ -229,7 +229,7 @@ class DocumentController {
 async function processImageDocument(res, req, documentToSign, user, signatureFound) {
   try {
     const pdfDoc = await PDFDocument.create();
-
+    const signError='Unable to sign document';
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
@@ -253,7 +253,6 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
       height: 50,
     });
     const pdfBytes = await pdfDoc.save();
-    console.log('uploading file');
     const id='tempdoc.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
     console.log(fileSaved, 'file saved');
@@ -262,7 +261,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     if (!file) {
       return response.sendError({
         res,
-        message: 'Unable to sign document'
+        message: signError
       });
     }
     const documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
@@ -285,7 +284,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     }
     return response.sendError({
       res,
-      message: 'Unable to sign document'
+      message: signError
     });
   } catch (error) {
     console.log(error);
@@ -303,6 +302,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
  */
 async function processDocument(res, req, documentToSign, user, signatureFound) {
   try {
+    const signError='Unable to sign document';
     console.log(documentToSign.file, 'file');
     const existingPdf =await fetch(documentToSign.file);
     const signatureImage = await fetch(req.body.signature);
@@ -332,7 +332,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     if (!file) {
       return response.sendError({
         res,
-        message: 'Unable to sign document'
+        message: signError
       });
     }
     let documentUpdated= await Document.findOneAndUpdate({'_id': objectId(req.body.documentId), 'signatories.email': user.email}, {
@@ -356,7 +356,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     }
     return response.sendError({
       res,
-      message: 'Unable to sign document'
+      message: signError
     });
   } catch (error) {
     console.log(error);
@@ -378,7 +378,6 @@ async function processFiles(req, user) {
       if (Array.isArray(allFiles)) {
         for (const ff of allFiles) {
           const fileUploaded=await uploadFile(ff, user.email);
-          console.log(fileUploaded, 'file uploaded');
           if (!fileUploaded) {
             continue;
           }
@@ -517,12 +516,13 @@ async function sendDocuments(signatories, documentPrepared) {
  */
 async function uploadFile(f, userId) {
   try {
-    console.log(f, 'file in upload');
     const publicId = `document/${userId}/${f.name}`;
+    const fileFormat=f.mimetype.split('/')[1];
+    const resouceType='auto';
     const fileUploaded=await
     cloudinary.uploader.upload(f.tempFilePath, {
-      format: f.mimetype.split('/')[1],
-      resource_type: 'auto',
+      format: fileFormat,
+      resource_type: resouceType,
       public_id: publicId,
       secure: true,
     });
@@ -602,7 +602,7 @@ function checkSignatureAllSigned(data) {
  * @param   {ArrayBuffer}  data  [data description]
  * @param   {String}  id    [id description]
  *
- * @return  {Object}        [return description]
+ * @return  {Promise<Object>}        [return description]
  */
 function saveFile(data, id) {
   return new Promise((resolve)=>{

@@ -254,12 +254,13 @@ class ReceipientController {
   }
   static async fetchSpecificReceipient(req, res, next) {
     try {
+      const errorString='Recipient id is missing in request parameters';
       if (!req.params.recipientsId) {
-        return response.sendError({res, message: 'Recipient id is missing in request parameters'});
+        return response.sendError({res, message: errorString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
-        return response.sendError({res, message: 'Invalid Recipient id'});
+        return response.sendError({res, message: errorString});
       }
 
       const recipients=await Recipient.findById(req.params.recipientsId).lean();
