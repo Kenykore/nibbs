@@ -41,7 +41,7 @@ pipeline {
         stage('Unit-Tests'){
             steps{
                 sh 'mv .env-test .env && npm i'
-                sh 'cross-env ENVIRONMENT=test jest --runInBand --detectOpenHandles --coverage --watchAll --forceExit'
+                sh 'cross-env ENVIRONMENT=test jest --detectOpenHandles --coverage --watchAll --forceExit'
                 sh 'ls -la'
             }
         }
