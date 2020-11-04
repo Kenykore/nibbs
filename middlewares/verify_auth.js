@@ -4,12 +4,11 @@ const crypto = require('crypto');
 const ObjectID= require('mongoose').Types.ObjectId;
 // helper
 const response = require('../utilities/response');
-
+const authFailure='Authorization token not found';
+const authFormatFailure='Invalid authorization string. Token must start with Bearer';
 const Secure = {
   verifyUser(req, res, next) {
     let token = req.header('Authorization');
-    const authFailure='Authorization token not found';
-    const authFormatFailure='Invalid authorization string. Token must start with Bearer';
     if (!token) {
       return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
     }
