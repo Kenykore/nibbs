@@ -40,7 +40,7 @@ pipeline {
         }
         stage('Unit-Tests'){
             steps{
-                sh 'npm i && npm test'
+                sh 'mv .env-test .env && npm i && npm test'
                 sh 'ls -la'
             }
         }
