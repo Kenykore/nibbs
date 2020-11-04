@@ -40,7 +40,6 @@ pipeline {
         }
         stage('Unit-Tests'){
             steps{
-                StartMongoContainer()
                 sh 'npm i && npm test'
                 sh 'ls -la'
             }
@@ -183,7 +182,6 @@ pipeline {
             slackSend (channel: 'project-mail-merge', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
         }
         always{
-            StopMongoContainer()
             cleanWs()
         }
     }
