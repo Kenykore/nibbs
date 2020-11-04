@@ -40,7 +40,7 @@ pipeline {
         }
         stage('Unit-Tests'){
             steps{
-                sh 'mv .env-test .env && npm i && npm test'
+                sh 'mv .env-test .env && npm i'
                 sh 'cross-env ENVIRONMENT=test jest --runInBand --detectOpenHandles --coverage --watchAll'
                 sh 'ls -la'
             }
