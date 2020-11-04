@@ -6,6 +6,7 @@ const response = require('../../../utilities/response');
 const sendEmail = require('../../../services/Notification');
 const Recipient=require('../../../models/recipients');
 const Tag=require('../../../models/tags');
+const errorString='Recipient id is missing in request parameters';
 const validateRecipient = require('../../../validations/validate_recipients');
 /**
  * Receipient class
@@ -254,7 +255,6 @@ class ReceipientController {
   }
   static async fetchSpecificReceipient(req, res, next) {
     try {
-      const errorString='Recipient id is missing in request parameters';
       if (!req.params.recipientsId) {
         return response.sendError({res, message: errorString});
       }
@@ -283,7 +283,7 @@ class ReceipientController {
   static async updateRecipient(req, res, next) {
     try {
       if (!req.params.recipientsId) {
-        return response.sendError({res, message: 'Recipient id is missing in request parameters'});
+        return response.sendError({res, message: errorString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
@@ -322,7 +322,7 @@ class ReceipientController {
   static async deleteRecipient(req, res, next) {
     try {
       if (!req.params.recipientsId) {
-        return response.sendError({res, message: 'Recipient id is missing in request parameters'});
+        return response.sendError({res, message: errorString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
