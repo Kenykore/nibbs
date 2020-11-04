@@ -31,3 +31,5 @@ ENV CHROME_BIN=/usr/bin/google-chrome
 
 RUN apt install -y python-pip python3-pip
 RUN pip3 install dominate requests argparse
+
+RUN npm i -g jest cross-env
