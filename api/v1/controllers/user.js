@@ -13,6 +13,9 @@ const Tokenizer = require('../../../utilities/tokeniztion');
 const sendEmail = require('../../../services/Notification');
 const validateInvite = require('../../../validations/validate_invite');
 const validateAcceptInvite = require('../../../validations/validate_accept_invite');
+const successString='Users  found';
+const failureString='No User found';
+const failureMissingString='User id is missing in request parameters';
 
 const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
@@ -172,9 +175,9 @@ class UserController {
           },
           'data': users
         };
-        return response.sendSuccess({res, message: 'Users  found', body: responseContent});
+        return response.sendSuccess({res, message: successString, body: responseContent});
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);
@@ -183,11 +186,11 @@ class UserController {
   static async fetchSpecificUser(req, res, next) {
     try {
       if (!req.params.userId) {
-        return response.sendError({res, message: 'User id is missing in request parameters'});
+        return response.sendError({res, message: failureString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-        return response.sendError({res, message: 'Invalid User id'});
+        return response.sendError({res, message: failureString});
       }
 
       const user=await User.findById(req.params.userId).lean();
@@ -268,7 +271,7 @@ class UserController {
   static async updateUserAdmin(req, res, next) {
     try {
       if (!req.params.userId) {
-        return response.sendError({res, message: 'User id is missing in request parameters'});
+        return response.sendError({res, message: failureMissingString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -308,7 +311,7 @@ class UserController {
   static async updateUserRole(req, res, next) {
     try {
       if (!req.params.userId) {
-        return response.sendError({res, message: 'User id is missing in request parameters'});
+        return response.sendError({res, message: failureMissingString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -360,7 +363,7 @@ class UserController {
   static async deleteUser(req, res, next) {
     try {
       if (!req.params.userId) {
-        return response.sendError({res, message: 'User id is missing in request parameters'});
+        return response.sendError({res, message: failureMissingString});
       }
 
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
@@ -451,9 +454,9 @@ class UserController {
           },
           'data': users
         };
-        return response.sendSuccess({res, message: 'Users  found', body: responseContent});
+        return response.sendSuccess({res, message: successString, body: responseContent});
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);
@@ -547,7 +550,7 @@ tr:nth-child(even) {
           stream.pipe(res);
         });
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);
@@ -578,7 +581,7 @@ tr:nth-child(even) {
         res.attachment('shipment.csv');
         return res.status(200).send(csv);
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);
@@ -610,9 +613,9 @@ tr:nth-child(even) {
           },
           'data': users
         };
-        return response.sendSuccess({res, message: 'Users  found', body: responseContent});
+        return response.sendSuccess({res, message: successString, body: responseContent});
       }
-      return response.sendError({res, message: 'No User found', statusCode: status.NOT_FOUND});
+      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
     } catch (error) {
       console.log(error);
       return next(error);

@@ -4,18 +4,19 @@ const crypto = require('crypto');
 const ObjectID= require('mongoose').Types.ObjectId;
 // helper
 const response = require('../utilities/response');
-
+const authFailure='Authorization token not found';
+const authFormatFailure='Invalid authorization string. Token must start with Bearer';
 const Secure = {
   verifyUser(req, res, next) {
     let token = req.header('Authorization');
     if (!token) {
-      return response.sendError({res, message: 'Authorization token not found', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
     }
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);
     } else {
-      return response.sendError({res, message: 'Invalid authorization string. Token must start with Bearer', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
     }
 
     try {
@@ -32,13 +33,13 @@ const Secure = {
   verifyUserInvite(req, res, next) {
     let token = req.header('Authorization');
     if (!token) {
-      return response.sendError({res, message: 'Authorization token not found', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
     }
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);
     } else {
-      return response.sendError({res, message: 'Invalid authorization string. Token must start with Bearer', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
     }
 
     try {
@@ -55,13 +56,13 @@ const Secure = {
   verifyAdmin(req, res, next) {
     let token = req.header('Authorization');
     if (!token) {
-      return response.sendError({res, message: 'Authorization token not found', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
     }
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);
     } else {
-      return response.sendError({res, message: 'Invalid authorization string. Token must start with Bearer', statusCode: status.UNAUTHORIZED});
+      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
     }
 
     try {
