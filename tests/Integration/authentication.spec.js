@@ -16,7 +16,7 @@ describe('Test the authentication api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles')]);
+    return await Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles')]);
   });
   test('Non-registered user should NOT successfully sign in via SSO with missing details', async () => {
     await helper.post('/auth/login', testData.missing_user_data, null).expect(400);

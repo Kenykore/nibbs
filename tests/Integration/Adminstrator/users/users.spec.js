@@ -17,7 +17,7 @@ describe('Test the user invite api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return UserDB.db.dropCollection('users');
+    return await UserDB.db.dropCollection('users');
   });
   test('Admin user should filter all users', async () => {
     const Users= await helper.get('/admin/users/filter', {email: 'korede.moshood@mvxchange.com'}, verifedAdmin.body._token).expect(200);
