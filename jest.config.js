@@ -46,12 +46,12 @@ module.exports = {
 
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
-    'globals': {
-      'branches': 10,
-      'functions': 10,
-      'statements': 10,
-      'lines': 10
-    }
+    // 'globals': {
+    //   'branches': 10,
+    //   'functions': 10,
+    //   'statements': 10,
+    //   'lines': 10
+    // }
   },
 
   // A path to a custom dependency extractor

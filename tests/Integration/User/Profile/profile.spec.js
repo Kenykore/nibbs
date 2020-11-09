@@ -13,7 +13,7 @@ describe('Test the profile api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return UserDB.db.dropCollection('users');
+    return await UserDB.db.dropCollection('users');
   });
   test('Non-registered user should successfully sign in via SSO but not be able to update profile', async () => {
     nonVerifedUser = await helper.post('/auth/login', testData.unverified_user, null).expect(200);

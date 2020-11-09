@@ -20,7 +20,7 @@ describe('Test the recipients api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return Promise.all([UserDB.db.dropCollection('users'), RecipientDB.db.dropCollection('receipients'), TagDB.db.dropCollection('tags')]);
+    return await Promise.all([UserDB.db.dropCollection('users'), RecipientDB.db.dropCollection('receipients'), TagDB.db.dropCollection('tags')]);
   });
   test('Admin user should create single recipient', async () => {
     createdRecipient= await helper.post('/admin/recipient', testData.single_recipient, verifedAdmin.body._token).expect(200);

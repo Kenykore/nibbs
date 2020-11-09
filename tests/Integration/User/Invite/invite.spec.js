@@ -15,7 +15,7 @@ describe('Test the user invite api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return UserDB.db.dropCollection('users');
+    return await UserDB.db.dropCollection('users');
   });
   test('Non-registered invited user should successfully sign in via SSO and complete invite', async () => {
     nonVerifedInvitedUser = await helper.post('/auth/login', testData.invited_user_unverified, null).expect(200);
