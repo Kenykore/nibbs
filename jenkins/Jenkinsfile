@@ -42,7 +42,7 @@ pipeline {
             steps{
                 sh 'mv .env-test .env && npm i'
                 sh 'npm test'
-                sh 'ls -la'
+                sh 'ls -la coverage'
             }
         }
 
