@@ -17,7 +17,7 @@ describe('Test the documents api', () => {
     verifedUser=await helper.post('/auth/login', testData.verified_user, null).expect(200);
   });
   afterAll(async (done) => {
-    return Promise.all([UserDB.db.dropCollection('users'),
+    return await Promise.all([UserDB.db.dropCollection('users'),
       DocumentDB.db.dropCollection('documents'),
       DocumentLogs.db.dropCollection('documentlogs')]);
   });

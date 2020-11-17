@@ -25,7 +25,12 @@ module.exports = {
     // 'api/v1/*.js',
     '**/*.{js,jsx}',
     '!**/node_modules/**',
-    '!**/vendor/**'
+    '!**/vendor/**',
+    '!**/models/**',
+    '!**/utilities/**',
+    '!**/emails/**',
+    '!**/config/**',
+    '!**/services/**'
   ],
 
   // The directory where Jest should output its coverage files
@@ -46,12 +51,12 @@ module.exports = {
 
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
-    'globals': {
-      'branches': 10,
-      'functions': 10,
-      'statements': 10,
-      'lines': 10
-    }
+    // 'globals': {
+    //   'branches': 10,
+    //   'functions': 10,
+    //   'statements': 10,
+    //   'lines': 10
+    // }
   },
 
   // A path to a custom dependency extractor

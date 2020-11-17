@@ -14,7 +14,7 @@ describe('Test the user invite api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return UserDB.db.dropCollection('users');
+    return await UserDB.db.dropCollection('users');
   });
   test('Admin user should invite user', async () => {
     const invitedUsers= await helper.post('/admin/invite', {data: testData.invite_list}, verifedAdmin.body._token).expect(200);
