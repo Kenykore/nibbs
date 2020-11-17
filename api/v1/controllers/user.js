@@ -162,22 +162,7 @@ class UserController {
 
       const totalusers = await User.find({}).countDocuments();
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      const totalPages = Math.ceil(totalusers / usersPerPage);
-
-      if (users && users.length) {
-        const responseContent = {
-          'total_users': totalusers,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': usersPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': users
-        };
-        return response.sendSuccess({res, message: successString, body: responseContent});
-      }
-      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -442,21 +427,7 @@ class UserController {
           {email: new RegExp(search, 'i')},
         ],
       }).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      const totalPages = Math.ceil(totalusers / usersPerPage);
-      if (users && users.length) {
-        const responseContent = {
-          'total_users': totalusers,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': usersPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': users
-        };
-        return response.sendSuccess({res, message: successString, body: responseContent});
-      }
-      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -465,22 +436,7 @@ class UserController {
   /* istanbul ignore next */
   static async downloadAllUserPdf(req, res, next) {
     try {
-      const search = req.query.search;
-      const searchObject={
-      };
-      if (req.query.filter) {
-        searchObject.role=req.query.filter;
-      }
-      if (req.query.search) {
-        searchObject['$or']=[
-          {name: new RegExp(search, 'i')},
-          {mobile: new RegExp(search, 'i')},
-          {email: new RegExp(search, 'i')},
-        ];
-      }
-      const users = await User.find({
-        ...searchObject,
-      }).sort({_id: 'desc'});
+      const users = await filterUsers(req);
       if (users && users.length) {
         let htmlString=`<html>
 <head>
@@ -559,22 +515,7 @@ tr:nth-child(even) {
   /* istanbul ignore next */
   static async downloadAllUserCsv(req, res, next) {
     try {
-      const search = req.query.search;
-      const searchObject={
-      };
-      if (req.query.filter) {
-        searchObject.role=req.query.filter;
-      }
-      if (req.query.search) {
-        searchObject['$or']=[
-          {name: new RegExp(search, 'i')},
-          {mobile: new RegExp(search, 'i')},
-          {email: new RegExp(search, 'i')},
-        ];
-      }
-      const users = await User.find({
-        ...searchObject,
-      }).sort({_id: 'desc'});
+      const users = await filterUsers(req);
       if (users && users.length) {
         const fields=['name', 'email', 'username', 'mobile'];
         const csv =await json2csv.parseAsync(users, {fields: fields});
@@ -601,21 +542,7 @@ tr:nth-child(even) {
       const users = await User.find({
         ...req.query
       }).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      const totalPages = Math.ceil(totalusers / usersPerPage);
-      if (users && users.length) {
-        const responseContent = {
-          'total_users': totalusers,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': usersPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': users
-        };
-        return response.sendSuccess({res, message: successString, body: responseContent});
-      }
-      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -683,6 +610,69 @@ async function saveSignature(req, user) {
   } catch (error) {
     console.log(error);
     return [];
+  }
+}
+/**
+ * return list of users
+ *
+ * @param   {Object}  res           [res description]
+ * @param   {Number}  totalusers    [totalusers description]
+ * @param   {Number}  usersPerPage  [usersPerPage description]
+ * @param   {Array}  users         [users description]
+ * @param   {Number}  currentPage   [currentPage description]
+ *
+ * @return  {Promise<any>}                [return description]
+ */
+async function returnUserList(res, totalusers, usersPerPage, users, currentPage) {
+  try {
+    const totalPages = Math.ceil(totalusers / usersPerPage);
+
+    if (users && users.length) {
+      const responseContent = {
+        'total_users': totalusers,
+        'pagination': {
+          'current': currentPage,
+          'number_of_pages': totalPages,
+          'perPage': usersPerPage,
+          'next': currentPage === totalPages ? currentPage : currentPage + 1
+        },
+        'data': users
+      };
+      return response.sendSuccess({res, message: successString, body: responseContent});
+    }
+    return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+  } catch (error) {
+    console.log(error);
+  }
+}
+/**
+ * filter users for download
+ *
+ * @param   {Object}  req  [req description]
+ *
+ * @return  {Promise<Array>}       [return description]
+ */
+async function filterUsers(req,) {
+  try {
+    const search = req.query.search;
+    const searchObject={
+    };
+    if (req.query.filter) {
+      searchObject.role=req.query.filter;
+    }
+    if (req.query.search) {
+      searchObject['$or']=[
+        {name: new RegExp(search, 'i')},
+        {mobile: new RegExp(search, 'i')},
+        {email: new RegExp(search, 'i')},
+      ];
+    }
+    const users = await User.find({
+      ...searchObject,
+    }).sort({_id: 'desc'});
+    return users;
+  } catch (error) {
+    console.log(error);
   }
 }
 module.exports=UserController;

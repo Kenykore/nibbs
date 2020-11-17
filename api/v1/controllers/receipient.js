@@ -188,24 +188,7 @@ class ReceipientController {
       }
       console.log(searchObject, 'search');
 
-      const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
-      const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
-      const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
-
-      if (recipients && recipients.length) {
-        const responseContent = {
-          'total_recipients': totalrecipients,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': recipientsPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': recipients
-        };
-        return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
-      }
-      return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -230,24 +213,7 @@ class ReceipientController {
           {email: new RegExp(search, 'i')},
         ];
       }
-      const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
-      const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
-      const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
-
-      if (recipients && recipients.length) {
-        const responseContent = {
-          'total_recipients': totalrecipients,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': recipientsPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': recipients
-        };
-        return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
-      }
-      return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -344,6 +310,41 @@ class ReceipientController {
       console.log(error);
       return next(error);
     }
+  }
+}
+/**
+ * to return list of recipient
+ *
+ * @param   {Object}  res                [res description]
+ * @param   {Object}  searchObject       [searchObject description]
+ * @param   {Number}  skip               [skip description]
+ * @param   {Number}  recipientsPerPage  [recipientsPerPage description]
+ * @param   {Number}  currentPage        [currentPage description]
+ *
+ * @return  {Promise<any>}                     [return description]
+ */
+async function fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage) {
+  try {
+    const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
+    const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
+    const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
+
+    if (recipients && recipients.length) {
+      const responseContent = {
+        'total_recipients': totalrecipients,
+        'pagination': {
+          'current': currentPage,
+          'number_of_pages': totalPages,
+          'perPage': recipientsPerPage,
+          'next': currentPage === totalPages ? currentPage : currentPage + 1
+        },
+        'data': recipients
+      };
+      return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
+    }
+    return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+  } catch (error) {
+    console.log(error);
   }
 }
 module.exports=ReceipientController;
