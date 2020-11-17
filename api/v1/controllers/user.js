@@ -162,7 +162,7 @@ class UserController {
 
       const totalusers = await User.find({}).countDocuments();
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      return await returnUserList(res, totalusers, usersPerPage, users, currentPage);
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -427,7 +427,7 @@ class UserController {
           {email: new RegExp(search, 'i')},
         ],
       }).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      return await returnUserList(res, totalusers, usersPerPage, users, currentPage);
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -542,7 +542,7 @@ tr:nth-child(even) {
       const users = await User.find({
         ...req.query
       }).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      return await returnUserList(res, totalusers, usersPerPage, users, currentPage);
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -620,10 +620,11 @@ async function saveSignature(req, user) {
  * @param   {Number}  usersPerPage  [usersPerPage description]
  * @param   {Array}  users         [users description]
  * @param   {Number}  currentPage   [currentPage description]
+ * @param {Function} next
  *
  * @return  {Promise<any>}                [return description]
  */
-async function returnUserList(res, totalusers, usersPerPage, users, currentPage) {
+async function returnUserList(res, totalusers, usersPerPage, users, currentPage, next) {
   try {
     const totalPages = Math.ceil(totalusers / usersPerPage);
 
@@ -643,6 +644,7 @@ async function returnUserList(res, totalusers, usersPerPage, users, currentPage)
     return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
   } catch (error) {
     console.log(error);
+    return next(error);
   }
 }
 /**
@@ -667,12 +669,12 @@ async function filterUsers(req,) {
         {email: new RegExp(search, 'i')},
       ];
     }
-    const users = await User.find({
+    return await User.find({
       ...searchObject,
     }).sort({_id: 'desc'});
-    return users;
   } catch (error) {
     console.log(error);
+    return [];
   }
 }
 module.exports=UserController;

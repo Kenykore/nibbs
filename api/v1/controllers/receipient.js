@@ -188,7 +188,7 @@ class ReceipientController {
       }
       console.log(searchObject, 'search');
 
-      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage);
+      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -213,7 +213,7 @@ class ReceipientController {
           {email: new RegExp(search, 'i')},
         ];
       }
-      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage);
+      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next);
     } catch (error) {
       console.log(error);
       return next(error);
@@ -320,10 +320,10 @@ class ReceipientController {
  * @param   {Number}  skip               [skip description]
  * @param   {Number}  recipientsPerPage  [recipientsPerPage description]
  * @param   {Number}  currentPage        [currentPage description]
- *
+ *@param {Function} next
  * @return  {Promise<any>}                     [return description]
  */
-async function fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage) {
+async function fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next) {
   try {
     const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
     const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
@@ -345,6 +345,7 @@ async function fetchRecipients(res, searchObject, skip, recipientsPerPage, curre
     return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
   } catch (error) {
     console.log(error);
+    return next(error);
   }
 }
 module.exports=ReceipientController;
