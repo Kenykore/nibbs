@@ -4,6 +4,7 @@ tempdoc.pdf
 coverage
 check_ip.js
 test.js
+.scannerwork
 sonar-project.properties
 .scannerwork/.sonar_lock
 .scannerwork/report-task.txt

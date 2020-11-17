@@ -8,7 +8,19 @@ const fs = require('fs');
 const testData= require('./../../test_data/auth_data/admin_data');
 describe('Test the profile api', () => {
   beforeAll(async () => {
-    await UserDB.insertMany([testData.verified_user]);
+    await UserDB.insertMany([testData.verified_user, {
+      'name': 'OluwakoredeMVX2',
+      'username': 'kenymvx2',
+      'email': 'korede.moshood2@mvxchange.com',
+      'signatures': [
+        'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
+        'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+      ],
+      'role': 'user',
+      'status': 'active',
+      'mobile': '+2348133699507',
+      'password': 'boluwatife',
+    }]);
     //   return mysqlDB.connect();
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
@@ -39,14 +51,36 @@ describe('Test the profile api', () => {
       console.log(error);
     }
   });
+  test('Registered user should successfully sign in via SSO and NOT update profile email to an existing email', async () => {
+    try {
+      verifedUser = await helper.post('/auth/login', testData.verified_user, null).expect(200);
+      expect(verifedUser.body._token).toBeTruthy();
+      expect(verifedUser.body.data).toBeTruthy();
+      const decodedToken= Tokenization.verifyToken(verifedUser.body._token);
+      expect(decodedToken.data.verified).toBeTruthy();
+      const userFound= await helper.put('/users', {'email': 'korede.moshood2@mvxchange.com'}, verifedUser.body._token).expect(400);
+    } catch (error) {
+      console.log(error);
+    }
+  });
   test('Registered user should successfully add new Signature to profile', async () => {
     const formData = {
       my_field: 'file',
       my_file: fs.createReadStream('./create.png')
     };
+    await helper.post('/users/add/signature', {}, verifedUser.body._token).expect(400);
     const signatureAdded= await helper.postFormData('/users/add/signature', formData.my_file, verifedUser.body._token).expect(200);
     expect(signatureAdded.body.data).toBeTruthy();
     expect(signatureAdded.body.data.signatures.length).toBeGreaterThan(0);
+  });
+  test('Registered user should successfully fetch his profile', async () => {
+    const user= await helper.get('/users', null, verifedUser.body._token).expect(200);
+    expect(user.body.user).toBeTruthy();
+  });
+  test('Registered user NOT should successfully delete Signature with missing data', async () => {
+    await helper.post('/users/remove/signature',
+      {},
+      verifedUser.body._token).expect(400);
   });
   test('Registered user should successfully delete Signature', async () => {
     await helper.post('/users/remove/signature',

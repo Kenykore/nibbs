@@ -94,4 +94,19 @@ describe('Test the documents api', () => {
         'documentId': documentPrepared.body.data._id}).expect(200);
     expect(documentSigned.body.data).toBeTruthy();
   });
+  test('Registered user should sign image document', async () => {
+    const formData = {
+      my_field: 'file',
+      my_file: fs.createReadStream('./doc.jpeg')
+    };
+    const documentPrepared= await helper.postFormData('/documents/prepare',
+      formData.my_file, verifedUser.body._token, testData.document_preparation).expect(200);
+    expect(documentPrepared.body.data).toBeTruthy();
+    expect(documentPrepared.body.data.file).toBeTruthy();
+    const documentSigned= await helper.post('/documents/sign',
+      {'signature':
+  'https://res.cloudinary.com/comestibles/image/upload/v1598303725/signatures/spe%40mailinator.com/create.png.png',
+      'documentId': documentPrepared.body.data._id},
+      verifedAdmin.body._token).expect(200);
+  });
 });

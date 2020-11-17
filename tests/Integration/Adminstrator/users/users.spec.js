@@ -47,6 +47,10 @@ describe('Test the user invite api', () => {
     expect(Users.body.user).toBeTruthy();
     expect(Users.body.user.role).toBe('administrator');
   });
+  test('Admin should NOT update a user role with missing data', async () => {
+    const Users= await helper.put(`/admin/users/role/${createdUser._id.toString()}`, {
+    }, verifedAdmin.body._token).expect(400);
+  });
   test('Admin should update a user profile', async () => {
     const Users= await helper.put(`/admin/users/${createdUser._id.toString()}`, {
       'name': 'seun'
@@ -54,7 +58,21 @@ describe('Test the user invite api', () => {
     expect(Users.body.user).toBeTruthy();
     expect(Users.body.user.name).toBe('seun');
   });
+  test('Admin should NOT update a user profile to an existing email', async () => {
+    const Users= await helper.put(`/admin/users/${createdUser._id.toString()}`, {
+      'email': 'kenykore@gmail.com'
+    }, verifedAdmin.body._token).expect(400);
+  });
+  test('Admin should delete a user with wrong mongo id', async () => {
+    await helper.delete(`/admin/users/jgjgjjg`, null, verifedAdmin.body._token).expect(400);
+  });
   test('Admin should delete a user', async () => {
     await helper.delete(`/admin/users/${createdUser._id.toString()}`, null, verifedAdmin.body._token).expect(200);
+  });
+  test('Admin should not get any user after all users has been deleted', async ()=>{
+    await UserDB.db.dropCollection('users');
+    await helper.get('/admin/users', null, verifedAdmin.body._token).expect(404);
+    await helper.get('/admin/users/filter', {email: 'korede.moshood@mvxchange.com'}, verifedAdmin.body._token).expect(404);
+    await UserDB.create(testData.verified_admin);
   });
 });

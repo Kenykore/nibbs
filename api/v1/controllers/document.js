@@ -123,7 +123,7 @@ class DocumentController {
       if (!imgFile.includes(fileType)) {
         return await processDocument(res, req, documentToSign, user, signatureFound);
       } else {
-        return await processImageDocument(res, req, documentToSign, user, signatureFound);
+        return await processImageDocument(res, req, documentToSign, user, signatureFound, fileType);
       }
     } catch (error) {
       console.log(error, 'error of sign doc');
@@ -224,9 +224,10 @@ class DocumentController {
  * @param   {Object}  documentToSign  [documentToSign description]
  * @param   {Object}  user            [user description]
  *@param {any} signatureFound
+ @param {any} fileType
  * @return  {Promise<any>}                  [return description]
  */
-async function processImageDocument(res, req, documentToSign, user, signatureFound) {
+async function processImageDocument(res, req, documentToSign, user, signatureFound, fileType) {
   try {
     const pdfDoc = await PDFDocument.create();
     const signError='Unable to sign document';
