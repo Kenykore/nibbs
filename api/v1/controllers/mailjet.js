@@ -1,14 +1,12 @@
 /* istanbul ignore file */
-const User=require('../../../models/user');
 const Document=require('../../../models/document');
 const objectId= require('mongoose').Types.ObjectId;
-const status = require('http-status');
-const request = require('request-promise');
 const response = require('../../../utilities/response');
 /**
  * Controller class for mailjet hook
  */
 class MailJetController {
+  /* istanbul ignore next */
   static async recordData(req, res, next) {
     try {
       console.log(req.body, 'body');

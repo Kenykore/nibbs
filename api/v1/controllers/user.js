@@ -83,6 +83,7 @@ class UserController {
       /* istanbul ignore next */
       const {error} = validateAcceptInvite({role: role, ...user});
       if (error) {
+        /* istanbul ignore next */
         return response.sendError({
           res,
           message: error.details[0].message
@@ -98,6 +99,7 @@ class UserController {
       const files=await saveSignature(req, user);
 
       if (files.length===0) {
+        /* istanbul ignore next */
         return response.sendError({res, message: 'Could not upload signature'});
       }
       console.log(user, 'user');
@@ -123,10 +125,11 @@ class UserController {
         });
         return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to create User'});
     } catch (error) {
-      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -156,8 +159,8 @@ class UserController {
       /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to add User Signature'});
     } catch (error) {
-      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -171,8 +174,8 @@ class UserController {
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
       return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
-      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -190,13 +193,14 @@ class UserController {
           body: {user: user}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to find user,try again'
       });
     } catch (error) {
-      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -216,8 +220,8 @@ class UserController {
         message: 'Unable to find user,try again'
       });
     } catch (error) {
-      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -256,8 +260,8 @@ class UserController {
         message: 'Unable to update Profile,try again'
       });
     } catch (error) {
-      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -288,6 +292,8 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
+
       return response.sendError({
         res,
         message: 'Unable to update Profile,try again'
@@ -295,6 +301,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -314,6 +321,8 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
+
       return response.sendError({
         res,
         message: 'Unable to update user role,try again'
@@ -321,6 +330,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -338,6 +348,8 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
+
       return response.sendError({
         res,
         message: 'Unable to delete user signature,try again'
@@ -345,6 +357,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -361,6 +374,7 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to delete user,try again'
@@ -368,6 +382,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -399,6 +414,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -434,6 +450,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }

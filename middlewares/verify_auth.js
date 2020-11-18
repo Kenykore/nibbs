@@ -23,11 +23,13 @@ const Secure = {
     try {
       const verified = Tokenizer.verifyToken(checkTokenIsValid(req, res));
       req.userDetails = verified.data;
+      /* istanbul ignore next */
       if (!verified) {
         return response.sendError({res, message: 'Not Authorised. Protected route,token invalid', statusCode: status.UNAUTHORIZED});
       }
       return next();
     } catch (error) {
+      /* istanbul ignore next */
       return next(error);
     }
   },
@@ -43,7 +45,9 @@ const Secure = {
         return response.sendError({res, message: 'Not Authorised. Protected admin route', statusCode: status.UNAUTHORIZED});
       }
       return next();
+      /* istanbul ignore next */
     } catch (error) {
+      /* istanbul ignore next */
       return next(error);
     }
   },
