@@ -33,11 +33,13 @@ class ReceipientController {
         return response.sendError({res, message: 'Recipient Exist, Unable to add recipients'});
       }
       const recipientsAdded= await Recipient.create(req.body);
+      /* istanbul ignore next */
       if (recipientsAdded) {
         return response.sendSuccess({res, message: 'Recipient added Successfully', body: {data: recipientsAdded}});
       }
       return response.sendError({res, message: 'Unable to add recipients'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -71,6 +73,7 @@ class ReceipientController {
       }
       return response.sendError({res, message: 'Unable to add recipients'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -100,6 +103,7 @@ class ReceipientController {
       }
       return response.sendError({res, message: 'Unable to add tag'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -126,16 +130,13 @@ class ReceipientController {
       }
       return response.sendError({res, message: 'Unable to add any tag'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
   }
   static async deleteTag(req, res, next) {
     try {
-      if (!req.params.tagId) {
-        return response.sendError({res, message: 'Tag id is missing in request parameters'});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.tagId)) {
         return response.sendError({res, message: 'Invalid Tag id'});
       }
@@ -152,6 +153,7 @@ class ReceipientController {
         message: 'Unable to delete tag,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -170,6 +172,7 @@ class ReceipientController {
       }
       return response.sendError({res, message: 'No Tag found', statusCode: status.NOT_FOUND});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -182,31 +185,16 @@ class ReceipientController {
       const searchObject={
 
       };
+      /* istanbul ignore next */
       if (req.query.filter) {
         searchObject.tag=
           {$in: JSON.parse(req.query.filter)};
       }
       console.log(searchObject, 'search');
 
-      const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
-      const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
-      const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
-
-      if (recipients && recipients.length) {
-        const responseContent = {
-          'total_recipients': totalrecipients,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': recipientsPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': recipients
-        };
-        return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
-      }
-      return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -219,6 +207,7 @@ class ReceipientController {
       const searchObject={
 
       };
+      /* istanbul ignore next */
       if (req.query.filter) {
         searchObject.tag= {$in: JSON.parse(req.query.filter)};
       }
@@ -230,35 +219,15 @@ class ReceipientController {
           {email: new RegExp(search, 'i')},
         ];
       }
-      const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
-      const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
-      const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
-
-      if (recipients && recipients.length) {
-        const responseContent = {
-          'total_recipients': totalrecipients,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': recipientsPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': recipients
-        };
-        return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
-      }
-      return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+      return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
   }
   static async fetchSpecificReceipient(req, res, next) {
     try {
-      if (!req.params.recipientsId) {
-        return response.sendError({res, message: errorString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
         return response.sendError({res, message: errorString});
       }
@@ -276,16 +245,13 @@ class ReceipientController {
         message: 'Unable to find recipient,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
   }
   static async updateRecipient(req, res, next) {
     try {
-      if (!req.params.recipientsId) {
-        return response.sendError({res, message: errorString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
         return response.sendError({res, message: 'Invalid Recipient id'});
       }
@@ -315,16 +281,13 @@ class ReceipientController {
         message: 'Unable to update recipient,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
   }
   static async deleteRecipient(req, res, next) {
     try {
-      if (!req.params.recipientsId) {
-        return response.sendError({res, message: errorString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
         return response.sendError({res, message: 'Invalid Recipient id'});
       }
@@ -341,9 +304,47 @@ class ReceipientController {
         message: 'Unable to delete recipient,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
+  }
+}
+/**
+ * to return list of recipient
+ *
+ * @param   {Object}  res                [res description]
+ * @param   {Object}  searchObject       [searchObject description]
+ * @param   {Number}  skip               [skip description]
+ * @param   {Number}  recipientsPerPage  [recipientsPerPage description]
+ * @param   {Number}  currentPage        [currentPage description]
+ *@param {Function} next
+ * @return  {Promise<any>}                     [return description]
+ */
+async function fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next) {
+  try {
+    const totalrecipients = await Recipient.find({...searchObject}).countDocuments();
+    const recipients = await Recipient.find({...searchObject}).sort({_id: 'desc'}).skip(skip).limit(recipientsPerPage);
+    const totalPages = Math.ceil(totalrecipients / recipientsPerPage);
+
+    if (recipients && recipients.length) {
+      const responseContent = {
+        'total_recipients': totalrecipients,
+        'pagination': {
+          'current': currentPage,
+          'number_of_pages': totalPages,
+          'perPage': recipientsPerPage,
+          'next': currentPage === totalPages ? currentPage : currentPage + 1
+        },
+        'data': recipients
+      };
+      return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
+    }
+    return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    return next(error);
   }
 }
 module.exports=ReceipientController;

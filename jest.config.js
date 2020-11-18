@@ -25,7 +25,12 @@ module.exports = {
     // 'api/v1/*.js',
     '**/*.{js,jsx}',
     '!**/node_modules/**',
-    '!**/vendor/**'
+    '!**/vendor/**',
+    '!**/models/**',
+    '!**/utilities/**',
+    '!**/emails/**',
+    '!**/config/**',
+    '!**/services/**'
   ],
 
   // The directory where Jest should output its coverage files

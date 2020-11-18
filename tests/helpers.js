@@ -26,12 +26,38 @@ exports.postFormData = function(url, body, header, data=null) {
   httpRequest.set('Content-Type', 'application/x-www-form-urlencoded');
   return httpRequest;
 };
+exports.postFormDataMultiple = function(url, body, header, data=null) {
+  const httpRequest = request(app).post(url);
+  for (const b of body) {
+    httpRequest.attach('file', b.my_file);
+  }
+  if (data) {
+    for (const o of Object.keys(data)) {
+      httpRequest.field(o, data[o]);
+    }
+  }
+
+  if (header !== null && header !== undefined) {
+    httpRequest.set('Authorization', `Bearer ${header}`);
+  }
+  httpRequest.set('Content-Type', 'application/x-www-form-urlencoded');
+  return httpRequest;
+};
 exports.get = function(url, query, header) {
   const httpRequest = request(app).get(url);
   httpRequest.query(query);
   httpRequest.set('Accept', 'application/json');
   if (header !== null && header !== undefined) {
     httpRequest.set('Authorization', `Bearer ${header}`);
+  }
+  return httpRequest;
+};
+exports.fakeget = function(url, query, header) {
+  const httpRequest = request(app).get(url);
+  httpRequest.query(query);
+  httpRequest.set('Accept', 'application/json');
+  if (header !== null && header !== undefined) {
+    httpRequest.set('Authorization', `${header}`);
   }
   return httpRequest;
 };

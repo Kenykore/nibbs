@@ -21,6 +21,9 @@ describe('Test the user invite api', () => {
     expect(invitedUsers.body.data).toBeTruthy();
     expect(invitedUsers.body.data.length).toBe(2);
   });
+  test('Admin user should  NOT invite user with missing details', async () => {
+    await helper.post('/admin/invite', {}, verifedAdmin.body._token).expect(400);
+  });
   test('Admin user should NOT invite user twice', async () => {
     const invitedUsers= await helper.post('/admin/invite', {data: testData.invite_list}, verifedAdmin.body._token).expect(200);
     expect(invitedUsers.body.data).toBeTruthy();

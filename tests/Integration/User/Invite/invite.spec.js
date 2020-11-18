@@ -15,7 +15,7 @@ describe('Test the user invite api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return await UserDB.db.dropCollection('users');
+    return UserDB.db.dropCollection('users');
   });
   test('Non-registered invited user should successfully sign in via SSO and complete invite', async () => {
     nonVerifedInvitedUser = await helper.post('/auth/login', testData.invited_user_unverified, null).expect(200);
@@ -33,7 +33,14 @@ describe('Test the user invite api', () => {
     expect(inviteCompleted.body.data.signatures.length).toBeGreaterThan(0);
     expect(inviteCompleted.body.data.status).toBe('active');
   });
-  test('Non-registered user should successfully sign in via SSO and complete invite', async () => {
+  test('User shouldnt complete invite twice', async ()=>{
+    const formData = {
+      my_field: 'file',
+      my_file: fs.createReadStream('./create.png')
+    };
+    await helper.postFormData('/users/invite/complete', formData.my_file, nonVerifedInvitedUser.body._token).expect(400);
+  });
+  test('Non-registered and non-invited user should successfully sign in via SSO and complete invite', async () => {
     nonInvitedUser = await helper.post('/auth/login', testData.unverified_user, null).expect(200);
     expect(nonInvitedUser.body._token).toBeTruthy();
     expect(nonInvitedUser.body.data).toBeTruthy();
@@ -43,6 +50,7 @@ describe('Test the user invite api', () => {
       my_field: 'file',
       my_file: fs.createReadStream('./create.png')
     };
+    await helper.post('/users/invite/complete', {}, nonInvitedUser.body._token).expect(400);
     const inviteCompleted= await helper.postFormData('/users/invite/complete', formData.my_file, nonInvitedUser.body._token).expect(200);
     expect(inviteCompleted.body.data).toBeTruthy();
     expect(inviteCompleted.body.data.role).toBe('user');
