@@ -71,6 +71,8 @@ describe('Test the documents api', () => {
       verifedAdmin.body._token).expect(200);
     expect(documentSigned.body.data).toBeTruthy();
     expect(documentSigned.body.data.signed).toBeFalsy();
+  });
+  test('Test mailjet hook', async ()=>{
     await helper.post('/mailjet',
       [{
         event: 'open',
