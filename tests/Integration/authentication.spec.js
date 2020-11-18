@@ -19,10 +19,7 @@ describe('Test the authentication api', () => {
     return await Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles')]);
   });
   test('user should not call protected user route without token', async () => {
-    await helper.get('/users', null, null).expect(500);
-  });
-  test('user should not call protected route without bearer before token', async () => {
-    await helper.fakeget('/users', null, null).expect(500);
+    await helper.get('/users', null, null).expect(401);
   });
   test('Non-registered user should NOT successfully sign in via SSO with missing details', async () => {
     await helper.post('/auth/login', testData.missing_user_data, null).expect(400);
@@ -47,6 +44,12 @@ describe('Test the authentication api', () => {
     expect(verifedUser.body.data.role).toBe('user');
     const decodedToken= Tokenization.verifyToken(verifedUser.body._token);
     expect(decodedToken.data.verified).toBeTruthy();
+  });
+  test('user should not call protected route without bearer before token', async () => {
+    await helper.fakeget('/users', null, verifedUser.body._token).expect(401);
+  });
+  test('user should not call protected admin route  token', async () => {
+    await helper.post('/admin/recipient/tag', {}, verifedUser.body._token).expect(401);
   });
   test('Registered admin should successfully sign in via SSO', async () => {
     verifedAdmin=await helper.post('/auth/login', testData.verified_admin, null).expect(200);
