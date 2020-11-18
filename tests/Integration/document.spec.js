@@ -1,8 +1,9 @@
 const helper = require('../helpers');
+const sinon=require('sinon');
 const UserDB = require('../../models/user');
 const DocumentDB= require('../../models/document');
 const DocumentLogs= require('../../models/document_log');
-
+const documentCtrl=require('../../api/v1/controllers/document');
 const RoleDB = require('../../models/roles');
 const testData= require('./test_data/auth_data/admin_data');
 const Tokenization= require('../../utilities/tokeniztion');

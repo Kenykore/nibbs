@@ -18,7 +18,12 @@ describe('Test the authentication api', () => {
   afterAll(async (done) => {
     return await Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles')]);
   });
-
+  test('user should not call protected user route without token', async () => {
+    await helper.get('/users', null, null).expect(500);
+  });
+  test('user should not call protected route without bearer before token', async () => {
+    await helper.fakeget('/users', null, null).expect(500);
+  });
   test('Non-registered user should NOT successfully sign in via SSO with missing details', async () => {
     await helper.post('/auth/login', testData.missing_user_data, null).expect(400);
   });

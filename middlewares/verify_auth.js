@@ -8,19 +8,8 @@ const authFailure='Authorization token not found';
 const authFormatFailure='Invalid authorization string. Token must start with Bearer';
 const Secure = {
   verifyUser(req, res, next) {
-    let token = req.header('Authorization');
-    if (!token) {
-      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
-    }
-
-    if (token.startsWith('Bearer ')) {
-      token = token.slice(7, token.length);
-    } else {
-      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
-    }
-
     try {
-      const verified = Tokenizer.verifyToken(token);
+      const verified = Tokenizer.verifyToken(checkTokenIsValid(req));
       req.userDetails = verified.data;
       if (!req.userDetails.verified) {
         return response.sendError({res, message: 'Not Authorised. Protected route,account not verified yet', statusCode: status.UNAUTHORIZED});
@@ -31,19 +20,8 @@ const Secure = {
     }
   },
   verifyUserInvite(req, res, next) {
-    let token = req.header('Authorization');
-    if (!token) {
-      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
-    }
-
-    if (token.startsWith('Bearer ')) {
-      token = token.slice(7, token.length);
-    } else {
-      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
-    }
-
     try {
-      const verified = Tokenizer.verifyToken(token);
+      const verified = Tokenizer.verifyToken(checkTokenIsValid(req));
       req.userDetails = verified.data;
       if (!verified) {
         return response.sendError({res, message: 'Not Authorised. Protected route,token invalid', statusCode: status.UNAUTHORIZED});
@@ -54,19 +32,8 @@ const Secure = {
     }
   },
   verifyAdmin(req, res, next) {
-    let token = req.header('Authorization');
-    if (!token) {
-      return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
-    }
-
-    if (token.startsWith('Bearer ')) {
-      token = token.slice(7, token.length);
-    } else {
-      return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
-    }
-
     try {
-      const verified = Tokenizer.verifyToken(token);
+      const verified = Tokenizer.verifyToken(checkTokenIsValid(req));
       req.adminDetails = verified.data;
 
       // check if role is administrator
@@ -80,5 +47,22 @@ const Secure = {
     }
   },
 };
+/**
+ * check if token is valid
+ *@param {Object} req request
+ * @return  {string}  [return description]
+ */
+function checkTokenIsValid(req) {
+  let token = req.header('Authorization');
+  if (!token) {
+    return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
+  }
 
+  if (token.startsWith('Bearer ')) {
+    token = token.slice(7, token.length);
+  } else {
+    return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
+  }
+  return token;
+}
 module.exports = Secure;

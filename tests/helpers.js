@@ -35,6 +35,15 @@ exports.get = function(url, query, header) {
   }
   return httpRequest;
 };
+exports.fakeget = function(url, query, header) {
+  const httpRequest = request(app).get(url);
+  httpRequest.query(query);
+  httpRequest.set('Accept', 'application/json');
+  if (header !== null && header !== undefined) {
+    httpRequest.set('Authorization', `${header}`);
+  }
+  return httpRequest;
+};
 exports.delete = function(url, body, header) {
   const httpRequest = request(app).delete(url);
   httpRequest.send(body);
