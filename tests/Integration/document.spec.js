@@ -70,6 +70,34 @@ describe('Test the documents api', () => {
       verifedAdmin.body._token).expect(200);
     expect(documentSigned.body.data).toBeTruthy();
     expect(documentSigned.body.data.signed).toBeFalsy();
+    await helper.post('/mailjet',
+      [{
+        event: 'open',
+        customcampaign: documentPrepared.body.data._id,
+        email: 'kenykore@gmail.com'
+      },
+      {
+        event: 'click',
+        customcampaign: documentPrepared.body.data._id,
+        email: 'kenykore@gmail.com'
+      },
+      {
+        event: 'spam',
+        customcampaign: documentPrepared.body.data._id,
+        email: 'kenykore@gmail.com'
+      },
+      {
+        event: 'bounce',
+        customcampaign: documentPrepared.body.data._id,
+        email: 'kenykore@gmail.com'
+      },
+      {
+        event: 'blocked',
+        customcampaign: documentPrepared.body.data._id,
+        email: 'kenykore@gmail.com'
+      }
+      ]
+      , null).expect(200);
   });
   test('Signatory should NOT sign document twice', async () => {
     const documentSigned= await helper.post('/documents/sign',
@@ -100,13 +128,13 @@ describe('Test the documents api', () => {
       my_file: fs.createReadStream('./doc.jpeg')
     };
     const documentPrepared= await helper.postFormData('/documents/prepare',
-      formData.my_file, verifedUser.body._token, testData.document_preparation).expect(200);
+      formData.my_file, verifedUser.body._token, testData.document_preparation_two).expect(200);
     expect(documentPrepared.body.data).toBeTruthy();
     expect(documentPrepared.body.data.file).toBeTruthy();
     const documentSigned= await helper.post('/documents/sign',
       {'signature':
   'https://res.cloudinary.com/comestibles/image/upload/v1598303725/signatures/spe%40mailinator.com/create.png.png',
       'documentId': documentPrepared.body.data._id},
-      verifedAdmin.body._token).expect(200);
+      verifedUser.body._token).expect(200);
   });
 });

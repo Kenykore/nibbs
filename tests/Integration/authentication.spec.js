@@ -18,6 +18,7 @@ describe('Test the authentication api', () => {
   afterAll(async (done) => {
     return await Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles')]);
   });
+
   test('Non-registered user should NOT successfully sign in via SSO with missing details', async () => {
     await helper.post('/auth/login', testData.missing_user_data, null).expect(400);
   });
@@ -50,12 +51,20 @@ describe('Test the authentication api', () => {
     const decodedToken= Tokenization.verifyToken( verifedAdmin.body._token);
     expect(decodedToken.data.verified).toBeTruthy();
   });
+  test('Registered admin should not fetch any role when not created', async () => {
+    const Role=await helper.get('/auth/role', null, verifedAdmin.body._token).expect(404);
+  });
   test('Registered admin should successfully create role', async () => {
     createdRole=await helper.post('/auth/role', {
       'name': 'user'
     }, verifedAdmin.body._token).expect(200);
     expect(createdRole.body.data).toBeTruthy();
     expect(createdRole.body.data.name).toBe('user');
+  });
+  test('Registered admin should NOT create role with empty data', async () => {
+    const createdRole=await helper.post('/auth/role', {
+
+    }, verifedAdmin.body._token).expect(400);
   });
   test('Registered admin should successfully fetch role', async () => {
     const Role=await helper.get('/auth/role', null, verifedAdmin.body._token).expect(200);

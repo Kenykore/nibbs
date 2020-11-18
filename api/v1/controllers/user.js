@@ -170,10 +170,6 @@ class UserController {
   }
   static async fetchSpecificUser(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: failureString});
       }
@@ -255,10 +251,6 @@ class UserController {
   }
   static async updateUserAdmin(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureMissingString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: 'Invalid User id ,try again'});
       }
@@ -295,10 +287,6 @@ class UserController {
   }
   static async updateUserRole(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureMissingString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: 'Invalid User id'});
       }
@@ -347,10 +335,6 @@ class UserController {
   }
   static async deleteUser(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureMissingString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: 'Invalid User id'});
       }

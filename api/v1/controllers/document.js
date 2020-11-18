@@ -191,10 +191,6 @@ class DocumentController {
   }
   static async fetchSpecificDocument(req, res, next) {
     try {
-      if (!req.params.documentId) {
-        return response.sendError({res, message: 'document id is missing in request parameters'});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.documentId)) {
         return response.sendError({res, message: 'Invalid Document id'});
       }

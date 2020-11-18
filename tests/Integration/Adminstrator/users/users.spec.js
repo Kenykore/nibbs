@@ -30,6 +30,12 @@ describe('Test the user invite api', () => {
     expect(Users.body.data).toBeTruthy();
     expect(Users.body.data.length).toBe(1);
   });
+  test('Admin user should search and filter all users then download pdf', async () => {
+    const Users= await helper.get('/admin/users/download/pdf', {search: 'k', filter: 'administrator'}, verifedAdmin.body._token).expect(200);
+  });
+  test('Admin user should search and filter all users then download csv', async () => {
+    const Users= await helper.get('/admin/users/download/csv', {search: 'k', filter: 'administrator'}, verifedAdmin.body._token).expect(200);
+  });
   test('Admin should get all users', async () => {
     const Users= await helper.get('/admin/users', {data: testData.invite_list}, verifedAdmin.body._token).expect(200);
     expect(Users.body.total_users).toBe(2);
@@ -57,6 +63,11 @@ describe('Test the user invite api', () => {
     }, verifedAdmin.body._token).expect(200);
     expect(Users.body.user).toBeTruthy();
     expect(Users.body.user.name).toBe('seun');
+  });
+  test('Admin should NOT update a user profile with invalid mongoid', async () => {
+    const Users= await helper.put(`/admin/users/jggjgjg`, {
+      'name': 'seun'
+    }, verifedAdmin.body._token).expect(400);
   });
   test('Admin should NOT update a user profile to an existing email', async () => {
     const Users= await helper.put(`/admin/users/${createdUser._id.toString()}`, {

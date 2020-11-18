@@ -132,10 +132,6 @@ class ReceipientController {
   }
   static async deleteTag(req, res, next) {
     try {
-      if (!req.params.tagId) {
-        return response.sendError({res, message: 'Tag id is missing in request parameters'});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.tagId)) {
         return response.sendError({res, message: 'Invalid Tag id'});
       }
@@ -221,10 +217,6 @@ class ReceipientController {
   }
   static async fetchSpecificReceipient(req, res, next) {
     try {
-      if (!req.params.recipientsId) {
-        return response.sendError({res, message: errorString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
         return response.sendError({res, message: errorString});
       }
@@ -248,10 +240,6 @@ class ReceipientController {
   }
   static async updateRecipient(req, res, next) {
     try {
-      if (!req.params.recipientsId) {
-        return response.sendError({res, message: errorString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
         return response.sendError({res, message: 'Invalid Recipient id'});
       }
@@ -287,10 +275,6 @@ class ReceipientController {
   }
   static async deleteRecipient(req, res, next) {
     try {
-      if (!req.params.recipientsId) {
-        return response.sendError({res, message: errorString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.recipientsId)) {
         return response.sendError({res, message: 'Invalid Recipient id'});
       }

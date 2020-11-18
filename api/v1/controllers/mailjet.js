@@ -32,22 +32,37 @@ class MailJetController {
  */
 async function processStats(d) {
   try {
-    if (d.event==='open' && d.customcampaign.length>0) {
-      await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.open': 1}});
-      await Document.findOneAndUpdate({'_id': objectId(d.customcampaign), 'recipients.email': d.email}, {$set: {'recipients.$.open': true}});
+    if (d.customcampaign.length>0) {
+      let dataToSave={
+
+      };
+      switch (d.event) {
+      case 'open': {
+        dataToSave={'stats.open': 1};
+        await Document.findOneAndUpdate({'_id': objectId(d.customcampaign), 'recipients.email': d.email}, {$set: {'recipients.$.open': true}});
+        break;
+      }
+      case 'click': {
+        dataToSave= {'stats.clicked': 1};
+        break;
+      }
+      case 'bounce': {
+        dataToSave={'stats.bounced': 1};
+        break;
+      }
+      case 'blocked': {
+        dataToSave= {'stats.blocked': 1};
+        break;
+      }
+      case 'spam': {
+        dataToSave={'stats.spam': 1};
+        break;
+      }
+      }
+      await Document.findByIdAndUpdate(d.customcampaign, {$inc: dataToSave});
+      return;
     }
-    if (d.event==='click' && d.customcampaign.length>0) {
-      await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.clicked': 1}});
-    }
-    if (d.event==='bounce' && d.customcampaign.length>0) {
-      await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.bounced': 1}});
-    }
-    if (d.event==='blocked' && d.customcampaign.length>0) {
-      await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.blocked': 1}});
-    }
-    if (d.event==='spam' && d.customcampaign.length>0) {
-      await Document.findByIdAndUpdate(d.customcampaign, {$inc: {'stats.spam': 1}});
-    }
+    return;
   } catch (error) {
     console.log(error);
   }

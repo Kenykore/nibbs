@@ -24,6 +24,14 @@ module.exports = {
     ]),
     documentTitle: 'Test'
   },
+  document_preparation_two: {
+    documentBody: '<p>This is a demo document 2</p>',
+    recipients: JSON.stringify( [{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com'}]),
+    signatories: JSON.stringify([
+      {'name': 'OluwakoredeMVX', 'email': 'korede.moshood@mvxchange.com', 'x_coordinate': 5, 'y_coordinate': 20, 'page': 1},
+    ]),
+    documentTitle: 'Test'
+  },
   verified_user: {
     'name': 'OluwakoredeMVX',
     'username': 'kenymvx',

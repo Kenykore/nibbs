@@ -105,7 +105,8 @@ class AuthenticationController {
   static async getRole(req, res, next) {
     try {
       const roleFound=await Role.find({}).lean();
-      if (roleFound) {
+      console.log(roleFound, 'role found');
+      if (roleFound && roleFound.length) {
         return response.sendSuccess({res, message: 'Role found', body: {data: roleFound}});
       }
       return response.sendError({res, message: 'No role found', statusCode: status.NOT_FOUND});
@@ -125,9 +126,6 @@ class AuthenticationController {
   static async deleteRole(req, res, next) {
     try {
       const roleId=req.params.roleId;
-      if (!roleId) {
-        return response.sendError({res, message: 'Role id is required'});
-      }
       const roleDeleted=await Role.findByIdAndRemove(roleId);
       if (roleDeleted) {
         return response.sendSuccess({res, message: 'Role deleted'});
