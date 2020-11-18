@@ -73,6 +73,19 @@ describe('Test the profile api', () => {
     expect(signatureAdded.body.data).toBeTruthy();
     expect(signatureAdded.body.data.signatures.length).toBeGreaterThan(0);
   });
+  test('Registered user should successfully add new multiple Signature to profile', async () => {
+    const formData = [{
+      my_field: 'file',
+      my_file: fs.createReadStream('./create.png')
+    }, {
+      my_field: 'file',
+      my_file: fs.createReadStream('./price-tag.png')
+    }];
+    await helper.post('/users/add/signature', {}, verifedUser.body._token).expect(400);
+    const signatureAdded= await helper.postFormDataMultiple('/users/add/signature', formData, verifedUser.body._token).expect(200);
+    expect(signatureAdded.body.data).toBeTruthy();
+    expect(signatureAdded.body.data.signatures.length).toBeGreaterThan(0);
+  });
   test('Registered user should successfully fetch his profile', async () => {
     const user= await helper.get('/users', null, verifedUser.body._token).expect(200);
     expect(user.body.user).toBeTruthy();

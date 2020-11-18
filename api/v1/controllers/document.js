@@ -409,15 +409,6 @@ async function saveSignature(req, user) {
       const allFiles=req.files[f];
 
       console.log(allFiles, 'file');
-      if (Array.isArray(allFiles)) {
-        for (const ff of allFiles) {
-          const signatureUploaded=await uploadSignature(ff, user.email);
-          if (!signatureUploaded) {
-            continue;
-          }
-          files.push(signatureUploaded.path);
-        }
-      }
       const file=await uploadSignature(allFiles, user.email);
       console.log(file, 'file uploaded');
       if (!file) {

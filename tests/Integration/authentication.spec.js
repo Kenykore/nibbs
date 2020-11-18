@@ -49,7 +49,7 @@ describe('Test the authentication api', () => {
     await helper.fakeget('/users', null, verifedUser.body._token).expect(401);
   });
   test('user should not call protected admin route  token', async () => {
-    await helper.post('/admin/recipient/tag', {}, verifedUser.body._token).expect(401);
+    await helper.post('/admin/recipient/tag', {name: 'keny'}, verifedUser.body._token).expect(401);
   });
   test('Registered admin should successfully sign in via SSO', async () => {
     verifedAdmin=await helper.post('/auth/login', testData.verified_admin, null).expect(200);
