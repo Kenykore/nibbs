@@ -65,6 +65,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -128,6 +129,7 @@ class UserController {
       /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to create User'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -159,6 +161,7 @@ class UserController {
       /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to add User Signature'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -174,6 +177,7 @@ class UserController {
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
       return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -199,6 +203,7 @@ class UserController {
         message: 'Unable to find user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -220,6 +225,7 @@ class UserController {
         message: 'Unable to find user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -260,6 +266,7 @@ class UserController {
         message: 'Unable to update Profile,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -567,6 +574,7 @@ tr:nth-child(even) {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
