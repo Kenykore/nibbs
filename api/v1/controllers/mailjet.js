@@ -1,4 +1,3 @@
-/* istanbul ignore file */
 const Document=require('../../../models/document');
 const objectId= require('mongoose').Types.ObjectId;
 const response = require('../../../utilities/response');
@@ -40,23 +39,28 @@ async function processStats(d) {
       };
       /* istanbul ignore next */
       switch (d.event) {
+      /* istanbul ignore next */
       case 'open': {
         dataToSave={'stats.open': 1};
         await Document.findOneAndUpdate({'_id': objectId(d.customcampaign), 'recipients.email': d.email}, {$set: {'recipients.$.open': true}});
         break;
       }
+      /* istanbul ignore next */
       case 'click': {
         dataToSave= {'stats.clicked': 1};
         break;
       }
+      /* istanbul ignore next */
       case 'bounce': {
         dataToSave={'stats.bounced': 1};
         break;
       }
+      /* istanbul ignore next */
       case 'blocked': {
         dataToSave= {'stats.blocked': 1};
         break;
       }
+      /* istanbul ignore next */
       case 'spam': {
         dataToSave={'stats.spam': 1};
         break;

@@ -115,6 +115,7 @@ class ReceipientController {
   static async createMulipleTag(req, res, next) {
     try {
       if (!req.body.data) {
+        /* istanbul ignore next */
         return response.sendError({
           res,
           message: 'Tag data is required'
@@ -153,6 +154,7 @@ class ReceipientController {
           body: {tag: tagRemoved}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to delete tag,try again'
