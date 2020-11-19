@@ -37,10 +37,12 @@ class ReceipientController {
       if (recipientsAdded) {
         return response.sendSuccess({res, message: 'Recipient added Successfully', body: {data: recipientsAdded}});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to add recipients'});
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -75,6 +77,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -105,12 +108,14 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   static async createMulipleTag(req, res, next) {
     try {
       if (!req.body.data) {
+        /* istanbul ignore next */
         return response.sendError({
           res,
           message: 'Tag data is required'
@@ -132,6 +137,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -148,6 +154,7 @@ class ReceipientController {
           body: {tag: tagRemoved}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to delete tag,try again'
@@ -155,6 +162,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -174,6 +182,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -196,6 +205,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -223,6 +233,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -247,6 +258,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -276,6 +288,7 @@ class ReceipientController {
           body: {data: recipientUpdated}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to update recipient,try again'
@@ -283,6 +296,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -306,6 +320,7 @@ class ReceipientController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }

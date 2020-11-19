@@ -65,6 +65,7 @@ class UserController {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -113,6 +114,7 @@ class UserController {
           });
           return response.sendSuccess({res, message: 'User created Successfully', body: {data: userFound, _token: accessToken}});
         }
+        /* istanbul ignore next */
         return response.sendError({res, message: 'Unable to create User'});
       }
       const userCreated= await User.create({...user, signatures: files, status: 'active'});
@@ -128,6 +130,7 @@ class UserController {
       /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to create User'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -159,6 +162,7 @@ class UserController {
       /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to add User Signature'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -174,6 +178,7 @@ class UserController {
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
       return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -199,6 +204,7 @@ class UserController {
         message: 'Unable to find user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -215,11 +221,13 @@ class UserController {
           body: {user: user}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to find user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -260,6 +268,7 @@ class UserController {
         message: 'Unable to update Profile,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       /* istanbul ignore next */
       return next(error);
@@ -308,9 +317,11 @@ class UserController {
   static async updateUserRole(req, res, next) {
     try {
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+        /* istanbul ignore next */
         return response.sendError({res, message: 'Invalid User id'});
       }
       if (!req.body.role) {
+        /* istanbul ignore next */
         return response.sendError({res, message: 'User role missing'});
       }
       const userUpdated=await User.findByIdAndUpdate(req.params.userId, {role: req.body.role}, {new: true}).lean();
@@ -322,7 +333,6 @@ class UserController {
         });
       }
       /* istanbul ignore next */
-
       return response.sendError({
         res,
         message: 'Unable to update user role,try again'
@@ -567,6 +577,7 @@ tr:nth-child(even) {
     } catch (error) {
       /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -633,6 +644,7 @@ async function saveSignature(req, user) {
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return [];
   }
 }
@@ -669,6 +681,7 @@ async function returnUserList(res, totalusers, usersPerPage, users, currentPage,
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return next(error);
   }
 }
@@ -699,7 +712,9 @@ async function filterUsers(req,) {
       ...searchObject,
     }).sort({_id: 'desc'});
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return [];
   }
 }
