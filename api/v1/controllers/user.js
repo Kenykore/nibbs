@@ -606,6 +606,7 @@ async function uploadFile(f, userId) {
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+          /* istanbul ignore next */
     return false;
   }
 }
