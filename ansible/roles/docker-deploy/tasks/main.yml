@@ -1,3 +1,8 @@
+- name: Add user to docker group
+  become: true
+  shell: |
+    usermod -aG docker $USER
+
 - name: Clean docker file archive
   file:
     state: absent
@@ -18,11 +23,6 @@
     state: directory
   loop:
     - "{{APP_LOGS | default('/var/logs')}}"
-
-- name: Add user to docker group
-  become: true
-  shell: |
-    usermod -aG docker $USER
 
 - name: Load Docker image
   become: true
