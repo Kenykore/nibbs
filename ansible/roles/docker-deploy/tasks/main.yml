@@ -18,7 +18,6 @@
     state: directory
   loop:
     - "{{APP_LOGS | default('/var/logs')}}"
-    - "{{APP_HOME | default ('/app/{{APP_NAME}}')}}"
 
 - name: Add user to docker group
   become: true
