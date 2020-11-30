@@ -1,7 +1,7 @@
 def AnsibleDeploy() {
      sh 'env'
      sh 'touch hosts.ini && echo ${hosts_ini} | base64 --decode > hosts.ini'
-     sh 'ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i hosts.ini ansible/playbook.yml'
+     sh 'ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook --timeout 60 -i hosts.ini ansible/playbook.yml'
  }
 
  def InjectEnv() {
