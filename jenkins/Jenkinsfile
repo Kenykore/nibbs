@@ -1,0 +1,189 @@
+def AnsibleDeploy() {
+     sh 'env'
+     sh 'touch hosts.ini && echo ${hosts_ini} | base64 --decode > hosts.ini'
+     sh 'ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i hosts.ini ansible/playbook.yml'
+ }
+
+ def InjectEnv() {
+      sh 'touch hosts.ini && echo ${BE_env} | base64 --decode > .env'
+  }
+
+def StartMongoContainer() {
+    sh "docker run --name mongo-${BUILD_HOSTNAME} --rm --network=container:${BUILD_HOSTNAME} -e 'ACCEPT_EULA=Y' -d mongo:4.4"
+    sh "mv .env-test .env && sleep 10"
+}
+
+def StopMongoContainer() {
+    sh "docker rm -f -v mongo-${BUILD_HOSTNAME}"
+}
+
+pipeline {
+    environment {
+        BUILD_HOSTNAME="${sh(script: ' head -1 /proc/self/cgroup | cut -d/ -f3 | tr -d \'[:space:]\' ', returnStdout: true ) }"
+        IMG_TAG="${sh(script: 'echo \$GIT_COMMIT | cut -c -7 | tr -d \'[:space:]\' ', returnStdout: true ) }"
+        APP_NAME="mailmerge-backend"
+        SONAR_PROJECT="nibss-dev_MailMerge-Backend"
+        SLACK_CHANNEL="project-mail-merge"
+    }
+
+    agent {
+        dockerfile {
+            dir 'jenkins/'
+        }
+    }
+
+    stages {
+        stage('Post to Channel') {
+            steps {
+                slackSend (channel: 'project-mail-merge', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+        }
+        stage('Unit-Tests'){
+            steps{
+                sh 'mv .env-test .env && npm i'
+                sh 'npm test'
+                sh 'ls -la coverage'
+            }
+        }
+
+        stage('Code Quality - Sonar Scanner - PR'){
+            when {
+                changeRequest()
+            }
+            steps{
+              withSonarQubeEnv('SonarCloud') {
+                sh 'env'
+                sh 'sonar-scanner -Dsonar.pullrequest.key=${CHANGE_ID}'
+                }
+            }
+        }
+        stage('Code Quality - Sonar Scanner - BRANCH'){
+            when {
+               not {changeRequest()}
+            }
+            steps{
+              withSonarQubeEnv('SonarCloud') {
+                sh 'ls -al'
+                sh 'sonar-scanner -Dsonar.branch.name=${BRANCH_NAME}'
+                }
+            }
+        }
+
+        stage('Slonack') {
+            when {changeRequest()}
+            steps {
+                withCredentials([file(credentialsId: 'slonack', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                dir('Slonack') {
+                     git branch: 'master', credentialsId: 'github-token', url: 'https://github.com/nibss-dev/slonack'
+                     sh 'ls -l'
+                     sh 'python3 src/slonack/slonack.py ${CHANGE_ID} ${SONAR_PROJECT} ${SLACK_CHANNEL} ${SONAR_AUTH} ${SLACK_APP_AUTH}'
+                }
+            }
+        }
+
+        stage('Inject to dev') {
+            when { branch 'dev#'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dev', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to QA') {
+            when {branch 'qa'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-qa', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to DR') {
+            when {branch 'dr'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dr', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to Staging') {
+            when {branch 'staging'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-staging', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to Certification') {
+            when {branch 'certification'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-cert', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+        stage('Inject to Prod') {
+            when { branch 'master'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-prod', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                InjectEnv()
+            }
+        }
+
+        stage('Build  Image'){
+            steps{
+                sh "docker build -t $APP_NAME:$IMG_TAG . "
+                sh "docker save -o $APP_NAME:$IMG_TAG'.tar' $APP_NAME:$IMG_TAG"
+                sh 'ls -la'
+            }
+        }
+
+        stage('Deploy to dev') {
+            when { branch 'dev#'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dev', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to QA') {
+            when {branch 'qa'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-qa', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to DR') {
+            when {branch 'dr'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-dr', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to Staging') {
+            when {branch 'staging'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-staging', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to Certification') {
+            when {branch 'certification'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-cert', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+        stage('Deploy to Prod') {
+            when { branch 'master'}
+            steps {
+                withCredentials([file(credentialsId: 'mailmerge-prod', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+                AnsibleDeploy()
+            }
+        }
+    }
+    post{
+        success {
+            slackSend (channel: 'project-mail-merge', color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        failure {
+            slackSend (channel: 'project-mail-merge', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        always{
+            cleanWs()
+        }
+    }
+}
