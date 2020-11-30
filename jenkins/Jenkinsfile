@@ -33,53 +33,53 @@ pipeline {
     }
 
     stages {
-        stage('Post to Channel') {
-            steps {
-                slackSend (channel: 'project-mail-merge', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-            }
-        }
-        stage('Unit-Tests'){
-            steps{
-                sh 'mv .env-test .env && npm i'
-                sh 'npm test'
-                sh 'ls -la coverage'
-            }
-        }
-
-        stage('Code Quality - Sonar Scanner - PR'){
-            when {
-                changeRequest()
-            }
-            steps{
-              withSonarQubeEnv('SonarCloud') {
-                sh 'env'
-                sh 'sonar-scanner -Dsonar.pullrequest.key=${CHANGE_ID}'
-                }
-            }
-        }
-        stage('Code Quality - Sonar Scanner - BRANCH'){
-            when {
-               not {changeRequest()}
-            }
-            steps{
-              withSonarQubeEnv('SonarCloud') {
-                sh 'ls -al'
-                sh 'sonar-scanner -Dsonar.branch.name=${BRANCH_NAME}'
-                }
-            }
-        }
-
-        stage('Slonack') {
-            when {changeRequest()}
-            steps {
-                withCredentials([file(credentialsId: 'slonack', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
-                dir('Slonack') {
-                     git branch: 'master', credentialsId: 'github-token', url: 'https://github.com/nibss-dev/slonack'
-                     sh 'ls -l'
-                     sh 'python3 src/slonack/slonack.py ${CHANGE_ID} ${SONAR_PROJECT} ${SLACK_CHANNEL} ${SONAR_AUTH} ${SLACK_APP_AUTH}'
-                }
-            }
-        }
+//         stage('Post to Channel') {
+//             steps {
+//                 slackSend (channel: 'project-mail-merge', color: '#FFFF00', message: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+//             }
+//         }
+//         stage('Unit-Tests'){
+//             steps{
+//                 sh 'mv .env-test .env && npm i'
+//                 sh 'npm test'
+//                 sh 'ls -la coverage'
+//             }
+//         }
+//
+//         stage('Code Quality - Sonar Scanner - PR'){
+//             when {
+//                 changeRequest()
+//             }
+//             steps{
+//               withSonarQubeEnv('SonarCloud') {
+//                 sh 'env'
+//                 sh 'sonar-scanner -Dsonar.pullrequest.key=${CHANGE_ID}'
+//                 }
+//             }
+//         }
+//         stage('Code Quality - Sonar Scanner - BRANCH'){
+//             when {
+//                not {changeRequest()}
+//             }
+//             steps{
+//               withSonarQubeEnv('SonarCloud') {
+//                 sh 'ls -al'
+//                 sh 'sonar-scanner -Dsonar.branch.name=${BRANCH_NAME}'
+//                 }
+//             }
+//         }
+//
+//         stage('Slonack') {
+//             when {changeRequest()}
+//             steps {
+//                 withCredentials([file(credentialsId: 'slonack', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
+//                 dir('Slonack') {
+//                      git branch: 'master', credentialsId: 'github-token', url: 'https://github.com/nibss-dev/slonack'
+//                      sh 'ls -l'
+//                      sh 'python3 src/slonack/slonack.py ${CHANGE_ID} ${SONAR_PROJECT} ${SLACK_CHANNEL} ${SONAR_AUTH} ${SLACK_APP_AUTH}'
+//                 }
+//             }
+//         }
 
         stage('Inject to dev') {
             when { branch 'dev#'}
@@ -89,7 +89,7 @@ pipeline {
             }
         }
         stage('Inject to QA') {
-            when {branch 'qa'}
+            when {branch 'setup-jenkins'}
             steps {
                 withCredentials([file(credentialsId: 'mailmerge-qa', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
                 InjectEnv()
@@ -140,7 +140,7 @@ pipeline {
             }
         }
         stage('Deploy to QA') {
-            when {branch 'qa'}
+            when {branch 'setup-jenkins'}
             steps {
                 withCredentials([file(credentialsId: 'mailmerge-qa', variable: 'PIPELINE_ENV')]) { load "$PIPELINE_ENV"}
                 AnsibleDeploy()
@@ -176,12 +176,12 @@ pipeline {
         }
     }
     post{
-        success {
-            slackSend (channel: 'project-mail-merge', color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-        }
-        failure {
-            slackSend (channel: 'project-mail-merge', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-        }
+//         success {
+//             slackSend (channel: 'project-mail-merge', color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+//         }
+//         failure {
+//             slackSend (channel: 'project-mail-merge', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+//         }
         always{
             cleanWs()
         }

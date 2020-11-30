@@ -5,9 +5,12 @@
 
 - name: Copy docker image tar to deployment VM
   copy:
-    src: "../{{ APP_NAME ~ COLON ~ IMG_TAG }}.tar"
+    src: "{{item}}"
     dest: "/home/deployer/{{ APP_NAME }}/"
     force: yes
+  loop:
+    -  "../{{ APP_NAME ~ COLON ~ IMG_TAG }}.tar"
+    - "../.env"
 
 - name: Create directory
   file:
@@ -35,6 +38,7 @@
     name: "{{ APP_NAME }}"
     restart_policy: unless-stopped
     published_ports: "{{ HOST_PORT ~ COLON ~ CONTAINER_PORT }}"
+    env_file: "/home/deployer/{{ APP_NAME }}/.env"
 
 
 
