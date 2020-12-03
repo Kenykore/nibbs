@@ -1,0 +1,8 @@
+---
+APP_NAME: "{{ lookup('env', 'APP_NAME') }}"
+IMG_TAG: "{{ lookup('env', 'IMG_TAG') }}"
+COLON: ":"
+CONTAINER_PORT: "{{ lookup('env', 'BE_PORT') }}"
+HOST_PORT: "{{ lookup('env', 'BE_PORT') }}"
+APP_LOGS: "{{ lookup('env', 'BE_LOGS') }}"
+APP_HOME: "{{ lookup('env', 'APP_HOME') }}"
