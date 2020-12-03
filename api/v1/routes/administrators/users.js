@@ -11,6 +11,7 @@ const {verifyAdmin} = require('../../../../middlewares/verify_auth');
 const UserController = require('../../../v1/controllers/user');
 
 router.get('/', UserController.fetchAllUser);
+router.get('/staff/list', UserController.getStaffList);
 router.get('/search', UserController.searchAllUser);
 router.get('/download/pdf', UserController.downloadAllUserPdf);
 router.get('/download/csv', UserController.downloadAllUserCsv);

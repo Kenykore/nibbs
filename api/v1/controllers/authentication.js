@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const config = require('../../../config/index');
 const status = require('http-status');
+const fetch = require('node-fetch');
+
 const request = require('request-promise');
 const response = require('../../../utilities/response');
 const validateReg = require('../../../validations/validate_reg');
@@ -31,6 +33,56 @@ class AuthenticationController {
           message: error.details[0].message
         });
       }
+
+      //first validate that the email the user passed is a valid nibss email (ends with @nibss-plc.com.ng)
+      //find the user in the db, if he or she does not exist, then return error
+
+      const { email, password } = req.body;
+
+      const userName = email.split('@')[0];
+      // console.log('this is me here')
+
+      const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
+      // if he exists, then make a call to sso
+      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/login`, {
+        method: 'get',
+        headers: { Authorization: `Basic ${encodedData}` },
+      });
+
+      console.log('this is me here')
+
+      if (!getData.ok) {
+        return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
+      }
+      // if you need that user details
+      let userData = await getData.json()
+      console.log('==========================>>>>>>>>>>>>>>>>', userData)
+      
+
+      // example login data is 
+
+      // {
+      //   meta: { status: 'okay', message: 'Login successful', info: 'success' },
+      //   data: {
+      //     dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+      //     cn: 'Idris Kelani',
+      //     sn: 'Kelani',
+      //     givenName: 'Idris',
+      //     displayName: 'Idris Kelani',
+      //     memberOf: [
+      //       'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
+      //       'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
+      //       'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
+      //     ],
+      //     name: 'Idris Kelani',
+      //     sAMAccountName: 'ikelani',
+      //     userPrincipalName: 'ikelani@nibsstest.com',
+      //     lastLogonTimestamp: '132505361245464469',
+      //     mail: 'ikelani@nibss-plc.com.ng'
+      //   }
+      // }
+
+      // get user from the database and use the user information
       const userDetails={
         data: {
           email: req.body.email || '',

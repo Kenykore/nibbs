@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const config = require('../../../config/index');
 const json2csv = require('json2csv');
+const fetch = require('node-fetch');;
 
 const status = require('http-status');
 const request = require('request-promise');
@@ -19,6 +20,7 @@ const failureMissingString='User id is missing in request parameters';
 
 const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
+
 /**
  * User class
  */
@@ -46,7 +48,45 @@ class UserController {
         if (userExist) {
           continue;
         }
+        
+        // search for the user in the sso and do what you like if found
+        const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${email}`, {
+          method: 'post',
+        });
+  
+        if (!getUserData.ok) {
+          // 'do what you want to do here if the user does not exist
+          console.log('the user does not exist');
+        }
+
+        // this information contain the user data
+        let userData = await getUserData.json()
+        console.log('================the user information==========>>>>>>>>>>>>>>>>', userData)
+        // use the user data information to save the user in the db
+
+      //   example userData
+      //   meta: {
+      //     status: 'okay',
+      //     message: 'Search complete',
+      //     info: { dataCount: 1 }
+      //   },
+      //   data: [
+      //     {
+      //       dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+      //       controls: [],
+      //       cn: 'Idris Kelani',
+      //       sn: 'Kelani',
+      //       givenName: 'Idris',
+      //       displayName: 'Idris Kelani',
+      //       memberOf: [Array],
+      //       sAMAccountName: 'ikelani',
+      //       userPrincipalName: 'ikelani@nibsstest.com',
+      //       mail: 'ikelani@nibss-plc.com.ng'
+      //     }
+      //   ]
+      // }
         const invite= await User.create(d);
+        // check if user exist in nibss sso
         await sendEmail({
           to: d.email,
           from: 'e-signaturenotification@nibss-plc.com.ng',
@@ -68,7 +108,33 @@ class UserController {
       /* istanbul ignore next */
       return next(error);
     }
-  }
+  };
+      /**
+   * @description fetch a list of all staff in the active directory
+   * @param {object} req - Request object created by express for the route
+   * @param {object} res - Response object created by express for the route
+   * @param {function} next - Call back function to pass on data to the next middleware
+   * @returns {object} response object sent to the user
+   */
+  static async getStaffList(req, res, next) {
+    try {
+      const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/staff-list`, {
+        method: 'get',
+      });
+
+      if (!getUserData.ok) {
+        // 'do what you want to do here if could not fetch staff list
+        return response.sendError({res, statusCode: '401', message: 'Could not fetch staff list at this time'});
+      }
+
+      // this information contain the user data
+      const userData = await getUserData.json()
+      return response.sendSuccess({ res, body: userData });
+    } catch (error) {
+      return next(error);
+    }
+  };
+
   static async completeInvite(req, res, next) {
     try {
       if (!req.files || Object.keys(req.files).length === 0) {
