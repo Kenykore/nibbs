@@ -34,10 +34,32 @@ class AuthenticationController {
         });
       }
 
-      //first validate that the email the user passed is a valid nibss email (ends with @nibss-plc.com.ng)
-      //find the user in the db, if he or she does not exist, then return error
-
-      const { email, password } = req.body;
+      // first validate that the email the user passed is a valid nibss email (ends with @nibss-plc.com.ng)
+      // find the user in the db, if he or she does not exist, then return error
+      if (process.env.ENVIRONMENT==='test') {
+        const userInfo={
+          meta: {status: 'okay', message: 'Login successful', info: 'success'},
+          data: {
+            dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+            cn: 'Idris Kelani',
+            sn: 'Kelani',
+            givenName: 'Idris',
+            displayName: 'Idris Kelani',
+            memberOf: [
+              'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
+              'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
+              'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
+            ],
+            name: 'Idris Kelani',
+            sAMAccountName: 'ikelani',
+            userPrincipalName: req.body.email,
+            lastLogonTimestamp: '132505361245464469',
+            mail: req.body.email
+          }
+        };
+        return await authenciateUser(req, res, next, userInfo);
+      }
+      const {email, password} = req.body;
 
       const userName = email.split('@')[0];
       // console.log('this is me here')
@@ -46,20 +68,20 @@ class AuthenticationController {
       // if he exists, then make a call to sso
       const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/login`, {
         method: 'get',
-        headers: { Authorization: `Basic ${encodedData}` },
+        headers: {Authorization: `Basic ${encodedData}`},
       });
 
-      console.log('this is me here')
+      console.log('this is me here');
 
       if (!getData.ok) {
         return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
       }
       // if you need that user details
-      let userData = await getData.json()
-      console.log('==========================>>>>>>>>>>>>>>>>', userData)
-      
+      const userData = await getData.json();
+      console.log('==========================>>>>>>>>>>>>>>>>', userData);
 
-      // example login data is 
+      return await authenciateUser(req, res, next, userData);
+      // example login data is
 
       // {
       //   meta: { status: 'okay', message: 'Login successful', info: 'success' },
@@ -83,40 +105,6 @@ class AuthenticationController {
       // }
 
       // get user from the database and use the user information
-      const userDetails={
-        data: {
-          email: req.body.email || '',
-          username: req.body.username,
-          name: 'Oluwakorede',
-          mobile: '+2348133699506',
-          role: 'user',
-          status: 'inactive'
-        }
-      };
-      console.log(userDetails.data, 'user details');
-      if (!userDetails.data) {
-        return response.sendError({res, message: userDetails.meta.message});
-      }
-      let verified=false;
-      const data={user: userDetails.data};
-      const userExist = await User.findOne( {email: data.user.email}).lean();
-      console.log(userExist, 'uset exist');
-      if (userExist) {
-        verified=true;
-        data.user=userExist;
-      }
-      console.log(data.user, 'user');
-      const accessToken = Tokenizer.signToken({
-        ...data.user,
-        userId: data.user._id || undefined,
-        verified: verified
-      });
-      console.log('gotten here');
-      return response.sendSuccess({
-        res,
-        message: 'Login successful',
-        body: {_token: accessToken, data: {...data.user, userCount: await User.countDocuments()}}
-      });
     } catch (error) {
       console.log(error);
       return next(error);
@@ -186,6 +174,57 @@ class AuthenticationController {
     } catch (error) {
       return next(error);
     }
+  }
+}
+/**
+ * Authenticate user
+ *
+ * @param   {Object}  req       [req description]
+ * @param   {Object}  res       [res description]
+ * @param   {Function}  next      [next description]
+ * @param   {Object}  userData  [userData description]
+ *
+ * @return  {Promise<Object>}            [return description]
+ */
+async function authenciateUser(req, res, next, userData) {
+  try {
+    const userDetails={
+      data: {
+        email: userData.data.mail,
+        username: userData.data.userPrincipalName,
+        name: userData.data.name,
+        mobile: '',
+        role: 'user',
+        status: 'inactive'
+      }
+    };
+    console.log(userDetails.data, 'user details');
+    if (!userDetails.data) {
+      return response.sendError({res, message: userData.meta.message});
+    }
+    let verified=false;
+    const data={user: userDetails.data};
+    const userExist = await User.findOne( {email: data.user.email}).lean();
+    console.log(userExist, 'uset exist');
+    if (userExist) {
+      verified=true;
+      data.user=userExist;
+    }
+    console.log(data.user, 'user');
+    const accessToken = Tokenizer.signToken({
+      ...data.user,
+      userId: data.user._id || undefined,
+      verified: verified
+    });
+    console.log('gotten here');
+    return response.sendSuccess({
+      res,
+      message: 'Login successful',
+      body: {_token: accessToken, data: {...data.user, userCount: await User.countDocuments()}}
+    });
+  } catch (error) {
+    console.log(error);
+    return next(error);
   }
 }
 module.exports= AuthenticationController;
