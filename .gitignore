@@ -13,3 +13,4 @@ sonar-project.properties
 .scannerwork/scanner-report/component-1.pb
 .scannerwork/scanner-report/context-props.pb
 .scannerwork/scanner-report/metadata.pb
+.Ds_Store
