@@ -48,21 +48,23 @@ class UserController {
         if (userExist) {
           continue;
         }
+        if (process.env.ENVIRONMENT!=='test') {
+          const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${email}`, {
+            method: 'post',
+          });
 
-        // search for the user in the sso and do what you like if found
-        const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${email}`, {
-          method: 'post',
-        });
-
-        if (!getUserData.ok) {
-          // 'do what you want to do here if the user does not exist
-          console.log('the user does not exist');
-          continue;
+          if (!getUserData.ok) {
+            // 'do what you want to do here if the user does not exist
+            console.log('the user does not exist');
+            continue;
+          }
         }
+        // search for the user in the sso and do what you like if found
+
 
         // this information contain the user data
-        const userData = await getUserData.json();
-        console.log('================the user information==========>>>>>>>>>>>>>>>>', userData);
+        // const userData = await getUserData.json();
+        // console.log('================the user information==========>>>>>>>>>>>>>>>>', userData);
         // use the user data information to save the user in the db
 
         //   example userData
