@@ -48,13 +48,16 @@ class UserController {
         if (userExist) {
           continue;
         }
+        /* istanbul ignore next */
         if (process.env.ENVIRONMENT!=='test') {
+          /* istanbul ignore next */
           const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${email}`, {
             method: 'post',
           });
-
+          /* istanbul ignore next */
           if (!getUserData.ok) {
             // 'do what you want to do here if the user does not exist
+            /* istanbul ignore next */
             console.log('the user does not exist');
             continue;
           }
@@ -112,6 +115,7 @@ class UserController {
       return next(error);
     }
   }
+  /* istanbul ignore next */
   /**
    * @description fetch a list of all staff in the active directory
    * @param {object} req - Request object created by express for the route
@@ -121,19 +125,24 @@ class UserController {
    */
   static async getStaffList(req, res, next) {
     try {
+      /* istanbul ignore next */
       const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/staff-list`, {
         method: 'get',
       });
-
+      /* istanbul ignore next */
       if (!getUserData.ok) {
         // 'do what you want to do here if could not fetch staff list
+        /* istanbul ignore next */
         return response.sendError({res, statusCode: '401', message: 'Could not fetch staff list at this time'});
       }
 
       // this information contain the user data
+      /* istanbul ignore next */
       const userData = await getUserData.json();
+      /* istanbul ignore next */
       return response.sendSuccess({res, body: userData});
     } catch (error) {
+      /* istanbul ignore next */
       return next(error);
     }
   }

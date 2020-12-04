@@ -77,6 +77,7 @@ class AuthenticationController {
       console.log('this is me here');
       /* istanbul ignore next */
       if (!getData.ok) {
+        /* istanbul ignore next */
         return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
       }
       // if you need that user details
