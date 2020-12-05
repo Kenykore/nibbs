@@ -29,7 +29,7 @@
   }],
     "comma-dangle": "off",
     "indent": ["error", 2],
-    "max-lines": ["error", 800],
+    "max-lines": ["error", 1000],
     "max-len": ["error", 150],
     "quotes": [
       "error",

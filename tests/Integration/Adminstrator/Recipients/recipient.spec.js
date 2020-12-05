@@ -4,7 +4,8 @@ const helper = require('../../../helpers');
 const RecipientDB = require('../../../../models/recipients');
 const UserDB = require('../../../../models/user');
 const TagDB = require('../../../../models/tags');
-
+const nock=require('nock');
+let scope=null;
 const testData= require('../../test_data/auth_data/admin_data');
 const Tokenization= require('../../../../utilities/tokeniztion');
 const nonVerifedInvitedUser=null;
@@ -14,12 +15,35 @@ let verifedAdmin=null;
 const fs = require('fs');
 describe('Test the recipients api', () => {
   beforeAll(async () => {
+    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+      .get('/login')
+      .reply(200, {
+        meta: {status: 'okay', message: 'Login successful', info: 'success'},
+        data: {
+          dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+          cn: 'Idris Kelani',
+          sn: 'Kelani',
+          givenName: 'Idris',
+          displayName: 'Idris Kelani',
+          memberOf: [
+            'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
+          ],
+          name: 'Idris Kelani',
+          sAMAccountName: 'ikelani',
+          userPrincipalName: 'ikelani@nibsstest.com',
+          lastLogonTimestamp: '132505361245464469',
+          mail: 'ikelani@nibss-plc.com.ng'
+        }
+      });
     await UserDB.create(testData.verified_admin);
     verifedAdmin=await helper.post('/auth/login', testData.verified_admin, null).expect(200);
     //   return mysqlDB.connect();
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
+    scope.persist(false);
     return await Promise.all([UserDB.db.dropCollection('users'), RecipientDB.db.dropCollection('receipients'), TagDB.db.dropCollection('tags')]);
   });
   test('Admin user should fetch all tags as empty when no tag is created', async () => {
@@ -95,12 +119,12 @@ describe('Test the recipients api', () => {
     expect(createdTag.body.data.name).toBe('CEO');
   });
   test('Admin user should  NOT create single tag without name', async () => {
-   const createdTag= await helper.post('/admin/recipient/tag', {
+    const createdTag= await helper.post('/admin/recipient/tag', {
       'name': ''
     }, verifedAdmin.body._token).expect(400);
   });
   test('Admin user should NOT create duplicate single tag', async () => {
-   const createdTag= await helper.post('/admin/recipient/tag', {
+    const createdTag= await helper.post('/admin/recipient/tag', {
       'name': 'CEO'
     }, verifedAdmin.body._token).expect(400);
   });

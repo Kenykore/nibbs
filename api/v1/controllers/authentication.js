@@ -37,30 +37,6 @@ class AuthenticationController {
       // first validate that the email the user passed is a valid nibss email (ends with @nibss-plc.com.ng)
       // find the user in the db, if he or she does not exist, then return error
       /* istanbul ignore next */
-      if (process.env.ENVIRONMENT==='test') {
-        const userInfo={
-          meta: {status: 'okay', message: 'Login successful', info: 'success'},
-          data: {
-            dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
-            cn: 'Idris Kelani',
-            sn: 'Kelani',
-            givenName: 'Idris',
-            displayName: 'Idris Kelani',
-            memberOf: [
-              'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
-              'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
-              'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
-            ],
-            name: 'Idris Kelani',
-            sAMAccountName: 'ikelani',
-            userPrincipalName: req.body.email,
-            lastLogonTimestamp: '132505361245464469',
-            mail: req.body.email
-          }
-        };
-        /* istanbul ignore next */
-        return await authenciateUser(req, res, next, userInfo);
-      }
       const {email, password} = req.body;
 
       const userName = email.split('@')[0];
@@ -197,7 +173,7 @@ async function authenciateUser(req, res, next, userData) {
   try {
     const userDetails={
       data: {
-        email: userData.data.mail,
+        email: req.body.email,
         username: userData.data.userPrincipalName,
         name: userData.data.name,
         mobile: '',

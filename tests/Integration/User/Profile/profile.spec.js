@@ -5,9 +5,33 @@ const Tokenization= require('../../../../utilities/tokeniztion');
 let nonVerifedUser=null;
 let verifedUser=null;
 const fs = require('fs');
+const nock=require('nock');
+let scope=null;
 const testData= require('./../../test_data/auth_data/admin_data');
 describe('Test the profile api', () => {
   beforeAll(async () => {
+    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+      .get('/login')
+      .reply(200, {
+        meta: {status: 'okay', message: 'Login successful', info: 'success'},
+        data: {
+          dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+          cn: 'Idris Kelani',
+          sn: 'Kelani',
+          givenName: 'Idris',
+          displayName: 'Idris Kelani',
+          memberOf: [
+            'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
+          ],
+          name: 'Idris Kelani',
+          sAMAccountName: 'ikelani',
+          userPrincipalName: 'ikelani@nibsstest.com',
+          lastLogonTimestamp: '132505361245464469',
+          mail: 'ikelani@nibss-plc.com.ng'
+        }
+      });
     await UserDB.insertMany([testData.verified_user, {
       'name': 'OluwakoredeMVX2',
       'username': 'kenymvx2',
@@ -25,6 +49,7 @@ describe('Test the profile api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
+    scope.persist(false);
     return await UserDB.db.dropCollection('users');
   });
   test('Non-registered user should successfully sign in via SSO but not be able to update profile', async () => {

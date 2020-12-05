@@ -8,8 +8,32 @@ const nonVerifedInvitedUser=null;
 let createdUser=null;
 let verifedAdmin=null;
 const fs = require('fs');
+const nock=require('nock');
+let scope=null;
 describe('Test the user invite api', () => {
   beforeAll(async () => {
+    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+      .get('/login')
+      .reply(200, {
+        meta: {status: 'okay', message: 'Login successful', info: 'success'},
+        data: {
+          dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+          cn: 'Idris Kelani',
+          sn: 'Kelani',
+          givenName: 'Idris',
+          displayName: 'Idris Kelani',
+          memberOf: [
+            'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
+          ],
+          name: 'Idris Kelani',
+          sAMAccountName: 'ikelani',
+          userPrincipalName: 'ikelani@nibsstest.com',
+          lastLogonTimestamp: '132505361245464469',
+          mail: 'ikelani@nibss-plc.com.ng'
+        }
+      });
     createdUser= await (await UserDB.create(testData.verified_user)).toObject();
     await UserDB.create(testData.verified_admin);
     verifedAdmin=await helper.post('/auth/login', testData.verified_admin, null).expect(200);
@@ -17,6 +41,7 @@ describe('Test the user invite api', () => {
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
+    scope.persist(false);
     return await UserDB.db.dropCollection('users');
   });
   test('Admin user should filter all users', async () => {

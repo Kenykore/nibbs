@@ -49,19 +49,19 @@ class UserController {
           continue;
         }
         /* istanbul ignore next */
-        if (process.env.ENVIRONMENT!=='test') {
+
+        /* istanbul ignore next */
+        const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${d.email}`, {
+          method: 'post',
+        });
           /* istanbul ignore next */
-          const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${email}`, {
-            method: 'post',
-          });
+        if (!getUserData.ok) {
+          // 'do what you want to do here if the user does not exist
           /* istanbul ignore next */
-          if (!getUserData.ok) {
-            // 'do what you want to do here if the user does not exist
-            /* istanbul ignore next */
-            console.log('the user does not exist');
-            continue;
-          }
+          console.log('the user does not exist');
+          continue;
         }
+
         // search for the user in the sso and do what you like if found
 
 
