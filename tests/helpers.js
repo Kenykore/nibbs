@@ -52,6 +52,15 @@ exports.get = function(url, query, header) {
   }
   return httpRequest;
 };
+exports.getUsingKey = function(url, query, header) {
+  const httpRequest = request(app).get(url);
+  httpRequest.query(query);
+  httpRequest.set('Accept', 'application/json');
+  if (header !== null && header !== undefined) {
+    httpRequest.set('x-access-key', `${header}`);
+  }
+  return httpRequest;
+};
 exports.fakeget = function(url, query, header) {
   const httpRequest = request(app).get(url);
   httpRequest.query(query);
@@ -76,6 +85,15 @@ exports.put = function(url, body, header) {
   httpRequest.set('Accept', 'application/json');
   if (header !== null && header !== undefined) {
     httpRequest.set('Authorization', `Bearer ${header}`);
+  }
+  return httpRequest;
+};
+exports.putUsingKey = function(url, body, header) {
+  const httpRequest = request(app).put(url);
+  httpRequest.send(body);
+  httpRequest.set('Accept', 'application/json');
+  if (header !== null && header !== undefined) {
+    httpRequest.set('x-access-key', `${header}`);
   }
   return httpRequest;
 };

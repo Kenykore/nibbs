@@ -40,23 +40,23 @@ class AuthenticationController {
       const {email, password} = req.body;
 
       const userName = email.split('@')[0];
-      // console.log('this is me here')
+      // // console.log('this is me here')
       /* istanbul ignore next */
       const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
-      // if he exists, then make a call to sso
+      // // if he exists, then make a call to sso
       /* istanbul ignore next */
       const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/login`, {
         method: 'get',
         headers: {Authorization: `Basic ${encodedData}`},
       });
 
-      console.log('this is me here');
+      // console.log('this is me here');
       /* istanbul ignore next */
       if (!getData.ok) {
         /* istanbul ignore next */
         return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
       }
-      // if you need that user details
+      // // if you need that user details
       /* istanbul ignore next */
       const userData = await getData.json();
       console.log('==========================>>>>>>>>>>>>>>>>', userData);
