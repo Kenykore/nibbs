@@ -49,8 +49,6 @@ class AuthenticationController {
         method: 'get',
         headers: {Authorization: `Basic ${encodedData}`},
       });
-
-      // console.log('this is me here');
       /* istanbul ignore next */
       if (!getData.ok) {
         /* istanbul ignore next */

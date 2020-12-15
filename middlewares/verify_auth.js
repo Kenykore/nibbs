@@ -126,8 +126,7 @@ async function checkIfAppKeyValid(req, res) {
  */
 async function verifyUserViaKey(req, res, next) {
   try {
-    const user=await User.findById(req.query.userId).lean();
-    return user;
+    return await User.findById(req.query.userId).lean();
   } catch (error) {
     console.log(error);
     return next(error);
