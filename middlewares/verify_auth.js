@@ -112,7 +112,9 @@ async function checkIfAppKeyValid(req, res) {
     }
     return true;
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }/**
@@ -128,7 +130,9 @@ async function verifyUserViaKey(req, res, next) {
   try {
     return await User.findById(req.query.userId).lean();
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return next(error);
   }
 }
