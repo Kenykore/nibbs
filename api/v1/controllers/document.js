@@ -17,7 +17,7 @@ const sendEmail = require('../../../services/Notification');
 const validateSignDocument = require('../../../validations/validate_document_sign');
 const validatePrepareDocument = require('../../../validations/validate_document_prepare');
 const PDFDocument= require('pdf-lib').PDFDocument;
-const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
+const {randomNumber, formatPhoneNumber, addLeadingZeros, uploadFileMino, getFileUrl} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
 /**
  * Document class
@@ -318,6 +318,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
   try {
     const signError='Unable to sign document';
     console.log(documentToSign.file, 'file');
+    // change to minio
     const existingPdf =await fetch(documentToSign.file);
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
@@ -532,17 +533,12 @@ async function sendDocuments(signatories, documentPrepared) {
  */
 async function uploadFile(f, userId) {
   try {
-    const publicId = `document/${userId}/${f.name}`;
+    const publicId = `document_${userId}_${f.name}`;
     const fileFormat=f.mimetype.split('/')[1];
-    const resouceType='auto';
-    const fileUploaded=await
-    cloudinary.uploader.upload(f.tempFilePath, {
-      format: fileFormat,
-      resource_type: resouceType,
-      public_id: publicId,
-      secure: true,
-    });
-    return {file: f, path: fileUploaded.secure_url, name: f.name, publicId: publicId};
+    console.log(fileFormat, 'file format');
+    await uploadFileMino(publicId, f.tempFilePath);
+    const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: fileUploaded, name: f.name, publicId: publicId};
     /* istanbul ignore next */
   } catch (error) {
     /* istanbul ignore next */
@@ -560,15 +556,10 @@ async function uploadFile(f, userId) {
 async function uploadSignature(f, userId) {
   try {
     console.log(f, 'file in upload');
-    const publicId = `signatures/${userId}/${f.name}`;
-    const fileUploaded=await
-    cloudinary.uploader.upload(f.tempFilePath, {
-      resource_type: 'image',
-      format: f.mimetype.split('/')[1],
-      public_id: publicId,
-      secure: true,
-    });
-    return {file: f, path: fileUploaded.secure_url};
+    const publicId = `signatures_${userId}_${f.name}`;
+    await uploadFileMino(publicId, f.tempFilePath);
+    const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: fileUploaded};
     /* istanbul ignore next */
   } catch (error) {
     /* istanbul ignore next */
@@ -587,13 +578,10 @@ async function uploadSignature(f, userId) {
 async function uploadSignedDoc(f, publicId) {
   try {
     console.log(f, 'file in upload');
-    const fileUploaded=await
-    cloudinary.uploader.upload(f, {
-      public_id: publicId,
-      secure: true,
-    });
+    await uploadFileMino(publicId, f.tempFilePath, 'application/pdf');
+    const fileUploaded=await getFileUrl(publicId);
     console.log(fileUploaded, 'file');
-    return {path: fileUploaded.secure_url};
+    return {path: fileUploaded};
     /* istanbul ignore next */
   } catch (error) {
     /* istanbul ignore next */
