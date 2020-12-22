@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 /* istanbul ignore file */
 const bcrypt = require('bcrypt-nodejs');
 const moment = require('moment');
+const lodash=require('lodash');
+const {randomNumber, formatPhoneNumber, addLeadingZeros, getFileUrl} = require('../utilities/utils');
 const documentModel= new mongoose.Schema({
   ownerId: String,
   publicId: String,
@@ -70,7 +72,20 @@ const documentModel= new mongoose.Schema({
   timestamps: true
 });
 
-
+documentModel.post('find', async function(result, next) {
+  console.log(this instanceof mongoose.Query); // true
+  console.log(result, 'result');
+  if (result && result.length && result.length>0) {
+    console.log(result[0].publicId, 'file document in model');
+    result.file = await getFileUrl(result[0].publicId);
+    return next();
+  }
+  if (result && !lodash.isArray(result)) {
+    console.log(result.publicId, 'file document in model');
+    result.file = await getFileUrl(result.publicId);
+    return next();
+  }
+});
 module.exports = mongoose.model('document', documentModel);
 
 

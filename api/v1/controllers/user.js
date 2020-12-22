@@ -671,11 +671,12 @@ tr:nth-child(even) {
  */
 async function uploadFile(f, userId) {
   try {
-    console.log(f, 'file in upload');
+    console.log(f, 'temp file path in upload');
     const publicId = `signatures_${userId}_${f.name}`;
-    await uploadFileMino(publicId, f.tempFilePath);
-    const fileUploaded=await getFileUrl(publicId);
-    return {file: f, path: fileUploaded};
+
+    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    // const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: publicId};
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
@@ -700,19 +701,22 @@ async function saveSignature(req, user) {
       console.log(allFiles, 'file');
       if (Array.isArray(allFiles)) {
         for (const ff of allFiles) {
+          console.log(ff, 'ff');
           const fileUploaded=await uploadFile(ff, user.email);
           if (!fileUploaded) {
             continue;
           }
           files.push(fileUploaded.path);
         }
+      } else {
+        console.log(allFiles, allFiles);
+        const file=await uploadFile(allFiles, user.email);
+        console.log(file, 'file uploaded');
+        if (!file) {
+          continue;
+        }
+        files.push(file.path);
       }
-      const file=await uploadFile(allFiles, user.email);
-      console.log(file, 'file uploaded');
-      if (!file) {
-        continue;
-      }
-      files.push(file.path);
     }
     return files;
   } catch (error) {

@@ -120,9 +120,12 @@ class DocumentController {
           message: 'You are have already signed this document'
         });
       }
-      const fileTypeArray=documentToSign.file.split('.');
+      const filePart=documentToSign.file.split('?');
+      console.log(filePart, 'file part');
+      const fileTypeArray=filePart[0].split('.');
       console.log(fileTypeArray, 'file type');
       const imgFile=['jpg', 'png', 'jpeg', 'svg'];
+
       const fileType=fileTypeArray[fileTypeArray.length-1];
       console.log(fileType, 'file type');
       console.log(signatureFound, 'signature found');
@@ -243,10 +246,11 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
+    console.log(signatureType);
     const pdfImage=await fetch(documentToSign.file);
     const signatureImageBytes=await signatureImage.buffer();
     const pdfImageBuffer=await pdfImage.buffer();
-    const pdfImageEmbed = fileType==='jpg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
+    const pdfImageEmbed = fileType==='jpeg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
     const pngImage =signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
     const pngDims = pngImage.scale(0.5);
     const page = pdfDoc.addPage([pdfImageEmbed.width, pdfImageEmbed.height]);
@@ -324,6 +328,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
     const existingPdfBytes=await existingPdf.buffer();
+    console.log(existingPdf, 'existing pdf');
     const signatureImageBytes=await signatureImage.buffer();
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     console.log(pdfDoc, 'pdf');
@@ -342,7 +347,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const id='temp.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
     console.log(fileSaved, 'file saved');
-    const file=await uploadSignedDoc(id, documentToSign.publicId);
+    const file=await uploadSignedDoc(id,documentToSign.publicId );
     console.log(file, 'file upload response');
     /* istanbul ignore next */
     if (!file) {
@@ -536,7 +541,7 @@ async function uploadFile(f, userId) {
     const publicId = `document_${userId}_${f.name}`;
     const fileFormat=f.mimetype.split('/')[1];
     console.log(fileFormat, 'file format');
-    await uploadFileMino(publicId, f.tempFilePath);
+    await uploadFileMino(publicId, f.tempFilePath, fileFormat);
     const fileUploaded=await getFileUrl(publicId);
     return {file: f, path: fileUploaded, name: f.name, publicId: publicId};
     /* istanbul ignore next */
@@ -557,7 +562,7 @@ async function uploadSignature(f, userId) {
   try {
     console.log(f, 'file in upload');
     const publicId = `signatures_${userId}_${f.name}`;
-    await uploadFileMino(publicId, f.tempFilePath);
+    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
     const fileUploaded=await getFileUrl(publicId);
     return {file: f, path: fileUploaded};
     /* istanbul ignore next */
@@ -578,7 +583,7 @@ async function uploadSignature(f, userId) {
 async function uploadSignedDoc(f, publicId) {
   try {
     console.log(f, 'file in upload');
-    await uploadFileMino(publicId, f.tempFilePath, 'application/pdf');
+    await uploadFileMino(publicId, f, 'application/pdf');
     const fileUploaded=await getFileUrl(publicId);
     console.log(fileUploaded, 'file');
     return {path: fileUploaded};

@@ -41,7 +41,7 @@ const UtilityFunction = {
  */
   async getFileUrl(file) {
     try {
-      const fileUrl=await minioClient.presignedGetObject(process.env.MINO_BUCKET_NAME, file, 24*60*60*365000);
+      const fileUrl=await minioClient.presignedGetObject(process.env.MINO_BUCKET_NAME, file, 24*60*60*7);
       return fileUrl;
     } catch (error) {
       console.log(error);
