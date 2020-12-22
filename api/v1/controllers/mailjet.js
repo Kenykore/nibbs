@@ -68,6 +68,7 @@ async function processStats(d) {
       }
       /* istanbul ignore next */
       await Document.findByIdAndUpdate(d.customcampaign, {$inc: dataToSave});
+      /* istanbul ignore next */
       return;
     }
     return;

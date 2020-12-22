@@ -1,22 +1,55 @@
 /* istanbul ignore file */
 const helper = require('../helpers');
 const UserDB = require('../../models/user');
+const ApplicationDB = require('../../models/apps');
 const RoleDB = require('../../models/roles');
 const testData= require('./test_data/auth_data/admin_data');
 const Tokenization= require('../../utilities/tokeniztion');
 let nonVerifedUser=null;
+const nock=require('nock');
+let scope=null;
 let verifedUser=null;
 let verifedAdmin=null;
 let createdRole=null;
+let appAdded=null;
 const fs = require('fs');
+const app = require('../../app');
 describe('Test the authentication api', () => {
   beforeAll(async () => {
+    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+      .get('/login')
+      .reply(200, {
+        meta: {status: 'okay', message: 'Login successful', info: 'success'},
+        data: {
+          dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+          cn: 'Idris Kelani',
+          sn: 'Kelani',
+          givenName: 'Idris',
+          displayName: 'Idris Kelani',
+          memberOf: [
+            'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
+            'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
+          ],
+          name: 'Idris Kelani',
+          sAMAccountName: 'ikelani',
+          userPrincipalName: 'ikelani@nibsstest.com',
+          lastLogonTimestamp: '132505361245464469',
+          mail: 'ikelani@nibss-plc.com.ng'
+        }
+      });
     await UserDB.insertMany([testData.verified_admin, testData.verified_user]);
+    appAdded=await ApplicationDB.create({
+      name: 'AWS',
+      key: 'AAAAA',
+      enabled: true,
+    });
     //   return mysqlDB.connect();
     // return AdminDB.destroy({ truncate: true, restartIdentity: true });
   });
   afterAll(async (done) => {
-    return await Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles')]);
+    scope.persist(false);
+    return await Promise.all([UserDB.db.dropCollection('users'), RoleDB.db.dropCollection('roles'), ApplicationDB.db.dropCollection('apps')]);
   });
   test('user should not call protected user route without token', async () => {
     await helper.get('/users', null, null).expect(401);
@@ -58,6 +91,28 @@ describe('Test the authentication api', () => {
     expect(verifedAdmin.body.data.role).toBe('administrator');
     const decodedToken= Tokenization.verifyToken( verifedAdmin.body._token);
     expect(decodedToken.data.verified).toBeTruthy();
+  });
+  test('Registered user should authenticate using API key', async () => {
+    await helper.getUsingKey(`/users`, {userId: verifedUser.body.data._id}, appAdded.key).expect(200);
+  });
+  test('Registered user should NOT authenticate using invalid API key', async () => {
+    await helper.getUsingKey(`/users`, {userId: verifedUser.body.data._id}, '5667').expect(401);
+  });
+  test('Registered Admin should authenticate using API key', async () => {
+    await helper.putUsingKey(`/admin/users/${verifedUser.body.data._id.toString()}?userId=${ verifedAdmin.body.data._id.toString()}`, {
+      'name': 'seun'
+    }, appAdded.key).expect(200);
+  });
+  test('Registered Admin should NOT authenticate using invalid API key', async () => {
+    await helper.putUsingKey(`/admin/users/${verifedUser.body.data._id.toString()}?userId=${ verifedAdmin.body.data._id.toString()}`, {
+      'name': 'seun'
+    }, '5504').expect(401);
+  });
+  test('Registered user should NOT call Admin route using API key', async () => {
+    console.log(verifedUser.body.data.role, 'role in test');
+    await helper.putUsingKey(`/admin/users/${verifedUser.body.data._id.toString()}?userId=${ verifedUser.body.data._id.toString()}`, {
+      'name': 'seun'
+    }, appAdded.key).expect(401);
   });
   test('Registered admin should not fetch any role when not created', async () => {
     const Role=await helper.get('/auth/role', null, verifedAdmin.body._token).expect(404);

@@ -2,13 +2,23 @@ const status = require('http-status');
 const Tokenizer = require('../utilities/tokeniztion');
 const crypto = require('crypto');
 const ObjectID= require('mongoose').Types.ObjectId;
+const User=require('../models/user');
+const Application=require('../models/apps');
+
 // helper
 const response = require('../utilities/response');
 const authFailure='Authorization token not found';
 const authFormatFailure='Invalid authorization string. Token must start with Bearer';
 const Secure = {
-  verifyUser(req, res, next) {
+  async verifyUser(req, res, next) {
     try {
+      const keyNeeded=await checkIfAppKeyValid(req, res);
+      const userDetails=await verifyUserViaKey(req, res, next);
+      if (keyNeeded && req.query.userId && userDetails) {
+        console.log('verified');
+        req.userDetails= {...userDetails, userId: userDetails._id};
+        return next();
+      }
       const verified = Tokenizer.verifyToken(checkTokenIsValid(req, res));
       req.userDetails = verified.data;
       if (!req.userDetails.verified) {
@@ -33,8 +43,19 @@ const Secure = {
       return next(error);
     }
   },
-  verifyAdmin(req, res, next) {
+  async verifyAdmin(req, res, next) {
     try {
+      const keyNeeded=await checkIfAppKeyValid(req, res);
+      const userDetails=await verifyUserViaKey(req, res, next);
+      if (keyNeeded && req.query.userId && userDetails) {
+        req.adminDetails= {...userDetails, userId: userDetails._id};
+        const adminrole = req.adminDetails.role;
+        console.log(adminrole, 'role');
+        if (adminrole !== 'administrator') {
+          return response.sendError({res, message: 'Not Authorised. Protected admin route', statusCode: status.UNAUTHORIZED});
+        }
+        return next();
+      }
       const verified = Tokenizer.verifyToken(checkTokenIsValid(req, res));
       req.adminDetails = verified.data;
 
@@ -70,5 +91,49 @@ function checkTokenIsValid(req, res) {
     return response.sendError({res, message: authFormatFailure, statusCode: status.UNAUTHORIZED});
   }
   return token;
+}
+/**
+ * [checkIfAppKeyValid description]
+ *
+ * @param {Object} req request
+ * @param {Object} res description]
+ *
+ * @return  {Promise<Boolean>}       [return description]
+ */
+async function checkIfAppKeyValid(req, res) {
+  try {
+    const key = req.header('x-access-key');
+    if (!key) {
+      return false;
+    }
+    const keyExist=await Application.findOne({key: key}).lean();
+    if (!keyExist) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    /* istanbul ignore next */
+    return false;
+  }
+}/**
+ * [async description]
+ *
+ * @param   {Object}  req   [req description]
+ * @param   {Object}  res   [res description]
+ * @param   {Function}  next  [next description]
+ *
+ * @return  {Promise<Object|null>}        [return description]
+ */
+async function verifyUserViaKey(req, res, next) {
+  try {
+    return await User.findById(req.query.userId).lean();
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    /* istanbul ignore next */
+    return next(error);
+  }
 }
 module.exports = Secure;
