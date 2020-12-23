@@ -18,7 +18,7 @@ const successString='Users  found';
 const failureString='No User found';
 const failureMissingString='User id is missing in request parameters';
 
-const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
+const {randomNumber, formatPhoneNumber, addLeadingZeros, uploadFileMino, getFileUrl} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
 
 /**
@@ -671,16 +671,12 @@ tr:nth-child(even) {
  */
 async function uploadFile(f, userId) {
   try {
-    console.log(f, 'file in upload');
-    const publicId = `signatures/${userId}/${f.name}`;
-    const fileUploaded=await
-    cloudinary.uploader.upload(f.tempFilePath, {
-      resource_type: 'image',
-      format: f.mimetype.split('/')[1],
-      public_id: publicId,
-      secure: true,
-    });
-    return {file: f, path: fileUploaded.secure_url};
+    console.log(f, 'temp file path in upload');
+    const publicId = `signatures_${userId}_${f.name}`;
+
+    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    // const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: publicId};
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
@@ -705,19 +701,22 @@ async function saveSignature(req, user) {
       console.log(allFiles, 'file');
       if (Array.isArray(allFiles)) {
         for (const ff of allFiles) {
+          console.log(ff, 'ff');
           const fileUploaded=await uploadFile(ff, user.email);
           if (!fileUploaded) {
             continue;
           }
           files.push(fileUploaded.path);
         }
+      } else {
+        console.log(allFiles, allFiles);
+        const file=await uploadFile(allFiles, user.email);
+        console.log(file, 'file uploaded');
+        if (!file) {
+          continue;
+        }
+        files.push(file.path);
       }
-      const file=await uploadFile(allFiles, user.email);
-      console.log(file, 'file uploaded');
-      if (!file) {
-        continue;
-      }
-      files.push(file.path);
     }
     return files;
   } catch (error) {
