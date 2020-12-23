@@ -4,7 +4,7 @@ tempdoc.pdf
 coverage
 check_ip.js
 test.js
-sonar-project.properties
+.scannerwork
 .scannerwork/.sonar_lock
 .scannerwork/report-task.txt
 .scannerwork/scanner-report/activerules.pb
@@ -12,3 +12,4 @@ sonar-project.properties
 .scannerwork/scanner-report/component-1.pb
 .scannerwork/scanner-report/context-props.pb
 .scannerwork/scanner-report/metadata.pb
+.Ds_Store

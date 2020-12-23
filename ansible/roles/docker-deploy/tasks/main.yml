@@ -1,3 +1,8 @@
+- name: Add user to docker group
+  become: true
+  shell: |
+    usermod -aG docker $USER
+
 - name: Clean docker file archive
   file:
     state: absent
@@ -5,9 +10,12 @@
 
 - name: Copy docker image tar to deployment VM
   copy:
-    src: "../{{ APP_NAME ~ COLON ~ IMG_TAG }}.tar"
+    src: "{{item}}"
     dest: "/home/deployer/{{ APP_NAME }}/"
     force: yes
+  loop:
+    -  "../{{ APP_NAME ~ COLON ~ IMG_TAG }}.tar"
+    - "../.env"
 
 - name: Create directory
   file:
@@ -15,12 +23,6 @@
     state: directory
   loop:
     - "{{APP_LOGS | default('/var/logs')}}"
-    - "{{APP_HOME | default ('/app/{{APP_NAME}}')}}"
-
-- name: Add user to docker group
-  become: true
-  shell: |
-    usermod -aG docker $USER
 
 - name: Load Docker image
   become: true
@@ -35,6 +37,7 @@
     name: "{{ APP_NAME }}"
     restart_policy: unless-stopped
     published_ports: "{{ HOST_PORT ~ COLON ~ CONTAINER_PORT }}"
+    env_file: "/home/deployer/{{ APP_NAME }}/.env"
 
 
 

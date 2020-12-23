@@ -1,5 +1,5 @@
 # MailMerge-e-SignatureSolution
-This project seeks to accommodate the build of a mail merge and electronic signature solution as well as features and enhancements that have been identified to aid the adoption of the solution  in NIBSS
+This project seeks to accommodate the build of a mail merge and electronic signature solution as well as features and enhancements that have been identified to aid the adoption of the solution  in NIBSS,The backend server was built using Nodejs+Express and database technology MongoDB. For image and file management Cloudinary was used.
 
 ### Run Instructions!
 To start the server simply clone,npm i and run npm start.

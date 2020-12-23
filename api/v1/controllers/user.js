@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const config = require('../../../config/index');
 const json2csv = require('json2csv');
+const fetch = require('node-fetch');
 
 const status = require('http-status');
 const request = require('request-promise');
@@ -17,8 +18,9 @@ const successString='Users  found';
 const failureString='No User found';
 const failureMissingString='User id is missing in request parameters';
 
-const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
+const {randomNumber, formatPhoneNumber, addLeadingZeros, uploadFileMino, getFileUrl} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
+
 /**
  * User class
  */
@@ -46,7 +48,51 @@ class UserController {
         if (userExist) {
           continue;
         }
+        /* istanbul ignore next */
+
+        /* istanbul ignore next */
+        const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${d.email}`, {
+          method: 'post',
+        });
+          /* istanbul ignore next */
+        if (!getUserData.ok) {
+          // 'do what you want to do here if the user does not exist
+          /* istanbul ignore next */
+          console.log('the user does not exist');
+          continue;
+        }
+
+        // search for the user in the sso and do what you like if found
+
+
+        // this information contain the user data
+        // const userData = await getUserData.json();
+        // console.log('================the user information==========>>>>>>>>>>>>>>>>', userData);
+        // use the user data information to save the user in the db
+
+        //   example userData
+        //   meta: {
+        //     status: 'okay',
+        //     message: 'Search complete',
+        //     info: { dataCount: 1 }
+        //   },
+        //   data: [
+        //     {
+        //       dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
+        //       controls: [],
+        //       cn: 'Idris Kelani',
+        //       sn: 'Kelani',
+        //       givenName: 'Idris',
+        //       displayName: 'Idris Kelani',
+        //       memberOf: [Array],
+        //       sAMAccountName: 'ikelani',
+        //       userPrincipalName: 'ikelani@nibsstest.com',
+        //       mail: 'ikelani@nibss-plc.com.ng'
+        //     }
+        //   ]
+        // }
         const invite= await User.create(d);
+        // check if user exist in nibss sso
         await sendEmail({
           to: d.email,
           from: 'e-signaturenotification@nibss-plc.com.ng',
@@ -63,10 +109,44 @@ class UserController {
       return response.sendSuccess({res, message: `Invite sent Successfully, ${inviteData.length} users invited, 
       ${req.body.data.length-inviteData.length} already exists`, body: {data: inviteData}});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
+  /* istanbul ignore next */
+  /**
+   * @description fetch a list of all staff in the active directory
+   * @param {object} req - Request object created by express for the route
+   * @param {object} res - Response object created by express for the route
+   * @param {function} next - Call back function to pass on data to the next middleware
+   * @return {object} response object sent to the user
+   */
+  static async getStaffList(req, res, next) {
+    try {
+      /* istanbul ignore next */
+      const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/staff-list`, {
+        method: 'get',
+      });
+      /* istanbul ignore next */
+      if (!getUserData.ok) {
+        // 'do what you want to do here if could not fetch staff list
+        /* istanbul ignore next */
+        return response.sendError({res, statusCode: '401', message: 'Could not fetch staff list at this time'});
+      }
+
+      // this information contain the user data
+      /* istanbul ignore next */
+      const userData = await getUserData.json();
+      /* istanbul ignore next */
+      return response.sendSuccess({res, body: userData});
+    } catch (error) {
+      /* istanbul ignore next */
+      return next(error);
+    }
+  }
+
   static async completeInvite(req, res, next) {
     try {
       if (!req.files || Object.keys(req.files).length === 0) {
@@ -79,8 +159,10 @@ class UserController {
       if (inviteFound) {
         role=inviteFound.role;
       }
+      /* istanbul ignore next */
       const {error} = validateAcceptInvite({role: role, ...user});
       if (error) {
+        /* istanbul ignore next */
         return response.sendError({
           res,
           message: error.details[0].message
@@ -96,6 +178,7 @@ class UserController {
       const files=await saveSignature(req, user);
 
       if (files.length===0) {
+        /* istanbul ignore next */
         return response.sendError({res, message: 'Could not upload signature'});
       }
       console.log(user, 'user');
@@ -109,9 +192,11 @@ class UserController {
           });
           return response.sendSuccess({res, message: 'User created Successfully', body: {data: userFound, _token: accessToken}});
         }
+        /* istanbul ignore next */
         return response.sendError({res, message: 'Unable to create User'});
       }
       const userCreated= await User.create({...user, signatures: files, status: 'active'});
+      /* istanbul ignore next */
       if (userCreated) {
         const accessToken = Tokenizer.signToken({
           ...userCreated.toObject(),
@@ -120,9 +205,12 @@ class UserController {
         });
         return response.sendSuccess({res, message: 'User created Successfully', body: {data: userCreated, _token: accessToken}});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to create User'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -135,6 +223,7 @@ class UserController {
       const user=req.userDetails;
       const userFound=await User.findById(user.userId);
       const files=await saveSignature(req, user);
+      /* istanbul ignore next */
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
@@ -148,9 +237,12 @@ class UserController {
         });
         return response.sendSuccess({res, message: 'User signature added Successfully', body: {data: userUpdated, _token: accessToken}});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to add User Signature'});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -162,33 +254,16 @@ class UserController {
 
       const totalusers = await User.find({}).countDocuments();
       const users = await User.find({}).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      const totalPages = Math.ceil(totalusers / usersPerPage);
-
-      if (users && users.length) {
-        const responseContent = {
-          'total_users': totalusers,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': usersPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': users
-        };
-        return response.sendSuccess({res, message: successString, body: responseContent});
-      }
-      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   static async fetchSpecificUser(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: failureString});
       }
@@ -201,12 +276,15 @@ class UserController {
           body: {user: user}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to find user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -221,12 +299,15 @@ class UserController {
           body: {user: user}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to find user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -259,21 +340,20 @@ class UserController {
           body: {user: userUpdated, _token: accessToken}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to update Profile,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   static async updateUserAdmin(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureMissingString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: 'Invalid User id ,try again'});
       }
@@ -299,25 +379,27 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
+
       return response.sendError({
         res,
         message: 'Unable to update Profile,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   static async updateUserRole(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureMissingString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+        /* istanbul ignore next */
         return response.sendError({res, message: 'Invalid User id'});
       }
       if (!req.body.role) {
+        /* istanbul ignore next */
         return response.sendError({res, message: 'User role missing'});
       }
       const userUpdated=await User.findByIdAndUpdate(req.params.userId, {role: req.body.role}, {new: true}).lean();
@@ -328,12 +410,15 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to update user role,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -351,21 +436,21 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
+
       return response.sendError({
         res,
         message: 'Unable to delete user signature,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   static async deleteUser(req, res, next) {
     try {
-      if (!req.params.userId) {
-        return response.sendError({res, message: failureMissingString});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
         return response.sendError({res, message: 'Invalid User id'});
       }
@@ -377,12 +462,15 @@ class UserController {
           body: {user: userUpdated}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to delete user,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -409,9 +497,12 @@ class UserController {
         };
         return response.sendSuccess({res, message: 'Invited Users  found', body: responseContent});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'No Invited User found', statusCode: status.NOT_FOUND});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -423,6 +514,7 @@ class UserController {
       const search = req.query.search;
       const searchObject={
       };
+      /* istanbul ignore next */
       if (req.query.filter) {
         searchObject.role=req.query.filter;
       }
@@ -442,45 +534,18 @@ class UserController {
           {email: new RegExp(search, 'i')},
         ],
       }).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      const totalPages = Math.ceil(totalusers / usersPerPage);
-      if (users && users.length) {
-        const responseContent = {
-          'total_users': totalusers,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': usersPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': users
-        };
-        return response.sendSuccess({res, message: successString, body: responseContent});
-      }
-      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   /* istanbul ignore next */
   static async downloadAllUserPdf(req, res, next) {
     try {
-      const search = req.query.search;
-      const searchObject={
-      };
-      if (req.query.filter) {
-        searchObject.role=req.query.filter;
-      }
-      if (req.query.search) {
-        searchObject['$or']=[
-          {name: new RegExp(search, 'i')},
-          {mobile: new RegExp(search, 'i')},
-          {email: new RegExp(search, 'i')},
-        ];
-      }
-      const users = await User.find({
-        ...searchObject,
-      }).sort({_id: 'desc'});
+      const users = await filterUsers(req);
       if (users && users.length) {
         let htmlString=`<html>
 <head>
@@ -559,22 +624,7 @@ tr:nth-child(even) {
   /* istanbul ignore next */
   static async downloadAllUserCsv(req, res, next) {
     try {
-      const search = req.query.search;
-      const searchObject={
-      };
-      if (req.query.filter) {
-        searchObject.role=req.query.filter;
-      }
-      if (req.query.search) {
-        searchObject['$or']=[
-          {name: new RegExp(search, 'i')},
-          {mobile: new RegExp(search, 'i')},
-          {email: new RegExp(search, 'i')},
-        ];
-      }
-      const users = await User.find({
-        ...searchObject,
-      }).sort({_id: 'desc'});
+      const users = await filterUsers(req);
       if (users && users.length) {
         const fields=['name', 'email', 'username', 'mobile'];
         const csv =await json2csv.parseAsync(users, {fields: fields});
@@ -601,23 +651,11 @@ tr:nth-child(even) {
       const users = await User.find({
         ...req.query
       }).sort({_id: 'desc'}).skip(skip).limit(usersPerPage);
-      const totalPages = Math.ceil(totalusers / usersPerPage);
-      if (users && users.length) {
-        const responseContent = {
-          'total_users': totalusers,
-          'pagination': {
-            'current': currentPage,
-            'number_of_pages': totalPages,
-            'perPage': usersPerPage,
-            'next': currentPage === totalPages ? currentPage : currentPage + 1
-          },
-          'data': users
-        };
-        return response.sendSuccess({res, message: successString, body: responseContent});
-      }
-      return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+      return await returnUserList(res, totalusers, usersPerPage, users, currentPage, next);
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -633,18 +671,16 @@ tr:nth-child(even) {
  */
 async function uploadFile(f, userId) {
   try {
-    console.log(f, 'file in upload');
-    const publicId = `signatures/${userId}/${f.name}`;
-    const fileUploaded=await
-    cloudinary.uploader.upload(f.tempFilePath, {
-      resource_type: 'image',
-      format: f.mimetype.split('/')[1],
-      public_id: publicId,
-      secure: true,
-    });
-    return {file: f, path: fileUploaded.secure_url};
+    console.log(f, 'temp file path in upload');
+    const publicId = `signatures_${userId}_${f.name}`;
+
+    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    // const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: publicId};
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
@@ -665,23 +701,98 @@ async function saveSignature(req, user) {
       console.log(allFiles, 'file');
       if (Array.isArray(allFiles)) {
         for (const ff of allFiles) {
+          console.log(ff, 'ff');
           const fileUploaded=await uploadFile(ff, user.email);
           if (!fileUploaded) {
             continue;
           }
           files.push(fileUploaded.path);
         }
+      } else {
+        console.log(allFiles, allFiles);
+        const file=await uploadFile(allFiles, user.email);
+        console.log(file, 'file uploaded');
+        if (!file) {
+          continue;
+        }
+        files.push(file.path);
       }
-      const file=await uploadFile(allFiles, user.email);
-      console.log(file, 'file uploaded');
-      if (!file) {
-        continue;
-      }
-      files.push(file.path);
     }
     return files;
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
+    return [];
+  }
+}
+/**
+ * return list of users
+ *
+ * @param   {Object}  res           [res description]
+ * @param   {Number}  totalusers    [totalusers description]
+ * @param   {Number}  usersPerPage  [usersPerPage description]
+ * @param   {Array}  users         [users description]
+ * @param   {Number}  currentPage   [currentPage description]
+ * @param {Function} next
+ *
+ * @return  {Promise<any>}                [return description]
+ */
+async function returnUserList(res, totalusers, usersPerPage, users, currentPage, next) {
+  try {
+    const totalPages = Math.ceil(totalusers / usersPerPage);
+
+    if (users && users.length) {
+      const responseContent = {
+        'total_users': totalusers,
+        'pagination': {
+          'current': currentPage,
+          'number_of_pages': totalPages,
+          'perPage': usersPerPage,
+          'next': currentPage === totalPages ? currentPage : currentPage + 1
+        },
+        'data': users
+      };
+      return response.sendSuccess({res, message: successString, body: responseContent});
+    }
+    return response.sendError({res, message: failureString, statusCode: status.NOT_FOUND});
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    /* istanbul ignore next */
+    return next(error);
+  }
+}
+/**
+ * filter users for download
+ *
+ * @param   {Object}  req  [req description]
+ *
+ * @return  {Promise<Array>}       [return description]
+ */
+async function filterUsers(req,) {
+  try {
+    const search = req.query.search;
+    const searchObject={
+    };
+    /* istanbul ignore next */
+    if (req.query.filter) {
+      searchObject.role=req.query.filter;
+    }
+    if (req.query.search) {
+      searchObject['$or']=[
+        {name: new RegExp(search, 'i')},
+        {mobile: new RegExp(search, 'i')},
+        {email: new RegExp(search, 'i')},
+      ];
+    }
+    return await User.find({
+      ...searchObject,
+    }).sort({_id: 'desc'});
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    /* istanbul ignore next */
     return [];
   }
 }

@@ -17,7 +17,7 @@ const sendEmail = require('../../../services/Notification');
 const validateSignDocument = require('../../../validations/validate_document_sign');
 const validatePrepareDocument = require('../../../validations/validate_document_prepare');
 const PDFDocument= require('pdf-lib').PDFDocument;
-const {randomNumber, formatPhoneNumber, addLeadingZeros} = require('../../../utilities/utils');
+const {randomNumber, formatPhoneNumber, addLeadingZeros, uploadFileMino, getFileUrl} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
 /**
  * Document class
@@ -32,9 +32,11 @@ class DocumentController {
       const user=req.userDetails;
 
       console.log(req.body, 'body');
+      /* istanbul ignore next */
       if (typeof req.body.recipients ==='string') {
         req.body.recipients=JSON.parse(req.body.recipients);
       }
+      /* istanbul ignore next */
       if (typeof req.body.signatories ==='string') {
         req.body.signatories=JSON.parse(req.body.signatories);
       }
@@ -59,12 +61,15 @@ class DocumentController {
         });
         return response.sendSuccess({res, message: 'Document Prepared for Signing Successfully', body: {data: documentPrepared}});
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to prepare document for signing'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -98,6 +103,7 @@ class DocumentController {
         return (x.email===user.email);
       });
       console.log(signatureFound, 'signature');
+      /* istanbul ignore next */
       if (!signatureFound) {
         return response.sendError({
           res,
@@ -114,19 +120,24 @@ class DocumentController {
           message: 'You are have already signed this document'
         });
       }
-      const fileTypeArray=documentToSign.file.split('.');
+      const filePart=documentToSign.file.split('?');
+      console.log(filePart, 'file part');
+      const fileTypeArray=filePart[0].split('.');
       console.log(fileTypeArray, 'file type');
       const imgFile=['jpg', 'png', 'jpeg', 'svg'];
+
       const fileType=fileTypeArray[fileTypeArray.length-1];
       console.log(fileType, 'file type');
       console.log(signatureFound, 'signature found');
       if (!imgFile.includes(fileType)) {
         return await processDocument(res, req, documentToSign, user, signatureFound);
       } else {
-        return await processImageDocument(res, req, documentToSign, user, signatureFound);
+        return await processImageDocument(res, req, documentToSign, user, signatureFound, fileType);
       }
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error, 'error of sign doc');
+      /* istanbul ignore next */
       return next(error);
     }
   }
@@ -183,18 +194,17 @@ class DocumentController {
         };
         return response.sendSuccess({res, message: 'Documents  found', body: responseContent});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'No Document found', statusCode: status.NOT_FOUND});
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
+      /* istanbul ignore next */
       return next(error);
     }
   }
   static async fetchSpecificDocument(req, res, next) {
     try {
-      if (!req.params.documentId) {
-        return response.sendError({res, message: 'document id is missing in request parameters'});
-      }
-
       if (!mongoose.Types.ObjectId.isValid(req.params.documentId)) {
         return response.sendError({res, message: 'Invalid Document id'});
       }
@@ -207,11 +217,13 @@ class DocumentController {
           body: {document: document, logs: await DocumentLog.find({documentId: document._id})}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to find documents,try again'
       });
     } catch (error) {
+      /* istanbul ignore next */
       console.log(error);
       return next(error);
     }
@@ -224,19 +236,21 @@ class DocumentController {
  * @param   {Object}  documentToSign  [documentToSign description]
  * @param   {Object}  user            [user description]
  *@param {any} signatureFound
+ @param {any} fileType
  * @return  {Promise<any>}                  [return description]
  */
-async function processImageDocument(res, req, documentToSign, user, signatureFound) {
+async function processImageDocument(res, req, documentToSign, user, signatureFound, fileType) {
   try {
     const pdfDoc = await PDFDocument.create();
     const signError='Unable to sign document';
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
+    console.log(signatureType);
     const pdfImage=await fetch(documentToSign.file);
     const signatureImageBytes=await signatureImage.buffer();
     const pdfImageBuffer=await pdfImage.buffer();
-    const pdfImageEmbed = fileType==='jpg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
+    const pdfImageEmbed = fileType==='jpeg'?await pdfDoc.embedJpg(pdfImageBuffer): await pdfDoc.embedPng(pdfImageBuffer);
     const pngImage =signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
     const pngDims = pngImage.scale(0.5);
     const page = pdfDoc.addPage([pdfImageEmbed.width, pdfImageEmbed.height]);
@@ -258,6 +272,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     console.log(fileSaved, 'file saved');
     const file=await uploadSignedDoc(id, documentToSign.publicId);
     console.log(file, 'file upload response');
+    /* istanbul ignore next */
     if (!file) {
       return response.sendError({
         res,
@@ -282,12 +297,15 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
       }
       return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
     }
+    /* istanbul ignore next */
     return response.sendError({
       res,
       message: signError
     });
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
@@ -304,11 +322,13 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
   try {
     const signError='Unable to sign document';
     console.log(documentToSign.file, 'file');
+    // change to minio
     const existingPdf =await fetch(documentToSign.file);
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
     const existingPdfBytes=await existingPdf.buffer();
+    console.log(existingPdf, 'existing pdf');
     const signatureImageBytes=await signatureImage.buffer();
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     console.log(pdfDoc, 'pdf');
@@ -327,8 +347,9 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const id='temp.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
     console.log(fileSaved, 'file saved');
-    const file=await uploadSignedDoc(id, documentToSign.publicId);
+    const file=await uploadSignedDoc(id,documentToSign.publicId );
     console.log(file, 'file upload response');
+    /* istanbul ignore next */
     if (!file) {
       return response.sendError({
         res,
@@ -354,12 +375,15 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
       console.log('done');
       return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
     }
+    /* istanbul ignore next */
     return response.sendError({
       res,
       message: signError
     });
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
@@ -379,6 +403,7 @@ async function processFiles(req, user) {
         for (const ff of allFiles) {
           const fileUploaded=await uploadFile(ff, user.email);
           if (!fileUploaded) {
+            /* istanbul ignore next */
             continue;
           }
           files.push({path: fileUploaded.path, publicId: fileUploaded.publicId});
@@ -393,7 +418,9 @@ async function processFiles(req, user) {
     }
     return files;
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return [];
   }
 }
@@ -412,17 +439,9 @@ async function saveSignature(req, user) {
       const allFiles=req.files[f];
 
       console.log(allFiles, 'file');
-      if (Array.isArray(allFiles)) {
-        for (const ff of allFiles) {
-          const signatureUploaded=await uploadSignature(ff, user.email);
-          if (!signatureUploaded) {
-            continue;
-          }
-          files.push(signatureUploaded.path);
-        }
-      }
       const file=await uploadSignature(allFiles, user.email);
       console.log(file, 'file uploaded');
+      /* istanbul ignore next */
       if (!file) {
         continue;
       }
@@ -430,7 +449,9 @@ async function saveSignature(req, user) {
     }
     return files;
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return [];
   }
 }
@@ -502,6 +523,7 @@ async function sendDocuments(signatories, documentPrepared) {
     }
     return true;
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
     return false;
   }
@@ -516,18 +538,15 @@ async function sendDocuments(signatories, documentPrepared) {
  */
 async function uploadFile(f, userId) {
   try {
-    const publicId = `document/${userId}/${f.name}`;
+    const publicId = `document_${userId}_${f.name}`;
     const fileFormat=f.mimetype.split('/')[1];
-    const resouceType='auto';
-    const fileUploaded=await
-    cloudinary.uploader.upload(f.tempFilePath, {
-      format: fileFormat,
-      resource_type: resouceType,
-      public_id: publicId,
-      secure: true,
-    });
-    return {file: f, path: fileUploaded.secure_url, name: f.name, publicId: publicId};
+    console.log(fileFormat, 'file format');
+    await uploadFileMino(publicId, f.tempFilePath, fileFormat);
+    const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: fileUploaded, name: f.name, publicId: publicId};
+    /* istanbul ignore next */
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
     return false;
   }
@@ -542,16 +561,13 @@ async function uploadFile(f, userId) {
 async function uploadSignature(f, userId) {
   try {
     console.log(f, 'file in upload');
-    const publicId = `signatures/${userId}/${f.name}`;
-    const fileUploaded=await
-    cloudinary.uploader.upload(f.tempFilePath, {
-      resource_type: 'image',
-      format: f.mimetype.split('/')[1],
-      public_id: publicId,
-      secure: true,
-    });
-    return {file: f, path: fileUploaded.secure_url};
+    const publicId = `signatures_${userId}_${f.name}`;
+    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    const fileUploaded=await getFileUrl(publicId);
+    return {file: f, path: fileUploaded};
+    /* istanbul ignore next */
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
     return false;
   }
@@ -567,14 +583,13 @@ async function uploadSignature(f, userId) {
 async function uploadSignedDoc(f, publicId) {
   try {
     console.log(f, 'file in upload');
-    const fileUploaded=await
-    cloudinary.uploader.upload(f, {
-      public_id: publicId,
-      secure: true,
-    });
+    await uploadFileMino(publicId, f, 'application/pdf');
+    const fileUploaded=await getFileUrl(publicId);
     console.log(fileUploaded, 'file');
-    return {path: fileUploaded.secure_url};
+    return {path: fileUploaded};
+    /* istanbul ignore next */
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
     return false;
   }
@@ -596,6 +611,7 @@ function checkSignatureAllSigned(data) {
   console.log(count, 'count');
   return count===data.length?true:false;
 }
+/* istanbul ignore next */
 /**
  * Function to save file locally
  *
@@ -608,6 +624,7 @@ function saveFile(data, id) {
   return new Promise((resolve)=>{
     fs.writeFile(`${id}`, data, (err, f)=>{
       if (err) {
+        /* istanbul ignore next */
         console.log(err);
         resolve(false);
       }
