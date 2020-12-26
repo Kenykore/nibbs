@@ -8,7 +8,6 @@ class MailJetController {
   /* istanbul ignore next */
   static async recordData(req, res, next) {
     try {
-      console.log(req.body, 'body');
       /* istanbul ignore next */
       for (const d of req.body) {
         await processStats(d);

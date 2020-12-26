@@ -58,7 +58,6 @@ class UserController {
         if (!getUserData.ok) {
           // 'do what you want to do here if the user does not exist
           /* istanbul ignore next */
-          console.log('the user does not exist');
           continue;
         }
 
@@ -152,7 +151,6 @@ class UserController {
       if (!req.files || Object.keys(req.files).length === 0) {
         return response.sendError({res, message: 'No signatures were uploaded'});
       }
-      console.log(req.files, 'files to upload');
       const user=req.userDetails;
       const inviteFound=await User.findOne({email: user.email, status: 'inactive'});
       let role='user';
@@ -181,7 +179,6 @@ class UserController {
         /* istanbul ignore next */
         return response.sendError({res, message: 'Could not upload signature'});
       }
-      console.log(user, 'user');
       if (inviteFound) {
         const userFound= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
         if (userFound) {
@@ -219,7 +216,6 @@ class UserController {
       if (!req.files || Object.keys(req.files).length === 0) {
         return response.sendError({res, message: 'No signatures were uploaded'});
       }
-      console.log(req.files, 'files to upload');
       const user=req.userDetails;
       const userFound=await User.findById(user.userId);
       const files=await saveSignature(req, user);
@@ -327,7 +323,6 @@ class UserController {
           }
         }
       }
-      console.log(userDetails._id, 'user id in update');
       const userUpdated=await User.findByIdAndUpdate(userDetails._id, update, {new: true}).lean();
       if (userUpdated) {
         const accessToken = Tokenizer.signToken({
@@ -584,7 +579,6 @@ tr:nth-child(even) {
   </tr>
  `;
         users.forEach((x, u)=>{
-          console.log(u, 'users');
           htmlString= htmlString + `
           <tr>
           <td>${u}</td>
@@ -601,7 +595,6 @@ tr:nth-child(even) {
         </table>
 </body>
 </html>`;
-        console.log(htmlString, 'HTML');
         return pdfToHtml.create(htmlString).toStream((err, stream)=> {
           if (err) {
             console.log(err);
@@ -671,7 +664,6 @@ tr:nth-child(even) {
  */
 async function uploadFile(f, userId) {
   try {
-    console.log(f, 'temp file path in upload');
     const publicId = `signatures_${userId}_${f.name}`;
 
     await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
@@ -698,10 +690,8 @@ async function saveSignature(req, user) {
     for (const f of Object.keys(req.files)) {
       const allFiles=req.files[f];
 
-      console.log(allFiles, 'file');
       if (Array.isArray(allFiles)) {
         for (const ff of allFiles) {
-          console.log(ff, 'ff');
           const fileUploaded=await uploadFile(ff, user.email);
           if (!fileUploaded) {
             continue;
@@ -709,9 +699,7 @@ async function saveSignature(req, user) {
           files.push(fileUploaded.path);
         }
       } else {
-        console.log(allFiles, allFiles);
         const file=await uploadFile(allFiles, user.email);
-        console.log(file, 'file uploaded');
         if (!file) {
           continue;
         }

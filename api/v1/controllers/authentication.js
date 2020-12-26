@@ -57,7 +57,6 @@ class AuthenticationController {
       // // if you need that user details
       /* istanbul ignore next */
       const userData = await getData.json();
-      console.log('==========================>>>>>>>>>>>>>>>>', userData);
       /* istanbul ignore next */
       return await authenciateUser(req, res, next, userData);
       // example login data is
@@ -86,7 +85,6 @@ class AuthenticationController {
       // get user from the database and use the user information
     } catch (error) {
       /* istanbul ignore next */
-      console.log(error);
       /* istanbul ignore next */
       return next(error);
     }
@@ -126,7 +124,6 @@ class AuthenticationController {
   static async getRole(req, res, next) {
     try {
       const roleFound=await Role.find({}).lean();
-      console.log(roleFound, 'role found');
       if (roleFound && roleFound.length) {
         return response.sendSuccess({res, message: 'Role found', body: {data: roleFound}});
       }
@@ -179,25 +176,21 @@ async function authenciateUser(req, res, next, userData) {
         status: 'inactive'
       }
     };
-    console.log(userDetails.data, 'user details');
     if (!userDetails.data) {
       return response.sendError({res, message: userData.meta.message});
     }
     let verified=false;
     const data={user: userDetails.data};
     const userExist = await User.findOne( {email: data.user.email}).lean();
-    console.log(userExist, 'uset exist');
     if (userExist) {
       verified=true;
       data.user=userExist;
     }
-    console.log(data.user, 'user');
     const accessToken = Tokenizer.signToken({
       ...data.user,
       userId: data.user._id || undefined,
       verified: verified
     });
-    console.log('gotten here');
     return response.sendSuccess({
       res,
       message: 'Login successful',

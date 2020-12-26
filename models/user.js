@@ -37,13 +37,9 @@ const userModel= new mongoose.Schema({
 }, {
   timestamps: true
 });
-userModel.post('find', async function(result, next) {
-  console.log(this instanceof mongoose.Query); // true
-  console.log(result, 'result');
+userModel.post('find', async (result, next) => {
   if (result && result.length && result.length>0) {
-    console.log(result[0].signatures, 'signature in model');
     const signature=result[0].signatures;
-    console.log(signature, 'signatures');
     result[0].signatures=signature.map(async (y)=>{
       const img=await getFileUrl(y);
       if (img) {
@@ -54,9 +50,7 @@ userModel.post('find', async function(result, next) {
     return next();
   }
   if (result && !lodash.isArray(result)) {
-    console.log(result.signatures, 'signature in model');
     const signature=result.signatures;
-    console.log(signatures, 'signatures');
     result.signatures=signature.map(async (y)=>{
       return await getFileUrl(y);
     });

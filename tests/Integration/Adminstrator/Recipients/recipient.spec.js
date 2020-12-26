@@ -82,7 +82,6 @@ describe('Test the recipients api', () => {
   });
   test('Admin should search all recipients', async () => {
     const Users= await helper.get('/admin/recipient/search', {search: 'Oluwakorede 2'}, verifedAdmin.body._token).expect(200);
-    console.log(Users.body, 'reci search');
     expect(Users.body.total_recipients).toBe(1);
     expect(Users.body.pagination).toBeTruthy();
     expect(Users.body.data.length).toBe(1);
