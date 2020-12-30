@@ -72,16 +72,12 @@ const documentModel= new mongoose.Schema({
   timestamps: true
 });
 
-documentModel.post('find', async function(result, next) {
-  console.log(this instanceof mongoose.Query); // true
-  console.log(result, 'result');
+documentModel.post('find', async (result, next) => {
   if (result && result.length && result.length>0) {
-    console.log(result[0].publicId, 'file document in model');
     result.file = await getFileUrl(result[0].publicId);
     return next();
   }
   if (result && !lodash.isArray(result)) {
-    console.log(result.publicId, 'file document in model');
     result.file = await getFileUrl(result.publicId);
     return next();
   }

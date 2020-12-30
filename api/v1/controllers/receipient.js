@@ -199,7 +199,6 @@ class ReceipientController {
         searchObject.tag=
           {$in: JSON.parse(req.query.filter)};
       }
-      console.log(searchObject, 'search');
 
       return await fetchRecipients(res, searchObject, skip, recipientsPerPage, currentPage, next);
     } catch (error) {
@@ -221,7 +220,6 @@ class ReceipientController {
       if (req.query.filter) {
         searchObject.tag= {$in: JSON.parse(req.query.filter)};
       }
-      console.log(searchObject, 'search');
       const search = req.query.search;
       if (search) {
         searchObject['$or']=[

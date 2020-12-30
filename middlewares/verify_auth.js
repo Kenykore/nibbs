@@ -15,7 +15,6 @@ const Secure = {
       const keyNeeded=await checkIfAppKeyValid(req, res);
       const userDetails=await verifyUserViaKey(req, res, next);
       if (keyNeeded && req.query.userId && userDetails) {
-        console.log('verified');
         req.userDetails= {...userDetails, userId: userDetails._id};
         return next();
       }
@@ -50,7 +49,6 @@ const Secure = {
       if (keyNeeded && req.query.userId && userDetails) {
         req.adminDetails= {...userDetails, userId: userDetails._id};
         const adminrole = req.adminDetails.role;
-        console.log(adminrole, 'role');
         if (adminrole !== 'administrator') {
           return response.sendError({res, message: 'Not Authorised. Protected admin route', statusCode: status.UNAUTHORIZED});
         }
@@ -61,7 +59,6 @@ const Secure = {
 
       // check if role is administrator
       const role = req.adminDetails.role;
-      console.log(role, 'role');
       if ((role !== 'administrator') || (!req.adminDetails.verified)) {
         return response.sendError({res, message: 'Not Authorised. Protected admin route', statusCode: status.UNAUTHORIZED});
       }

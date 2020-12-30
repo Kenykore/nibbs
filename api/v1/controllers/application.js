@@ -10,7 +10,6 @@ class AppController {
   /* istanbul ignore next */
   static async create(req, res, next) {
     try {
-      console.log(req.body, 'body');
       /* istanbul ignore next */
       const app=await Application.create({
         ...req.body,
@@ -20,7 +19,6 @@ class AppController {
       return response.sendSuccess({res, message: 'Application added', body: {data: app}});
     } catch (error) {
       /* istanbul ignore next */
-      console.log(error);
       /* istanbul ignore next */
       return next(error);
     }
@@ -32,7 +30,6 @@ class AppController {
 
       return response.sendSuccess({res, message: 'Application deleted', body: {data: appDeleted}});
     } catch (error) {
-      console.log(error);
       return next(error);
     }
   }
@@ -44,7 +41,6 @@ class AppController {
 
       return response.sendSuccess({res, message: 'Application key refreshed', body: {data: app}});
     } catch (error) {
-      console.log(error);
       return next(error);
     }
   }

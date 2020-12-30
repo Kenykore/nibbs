@@ -60,7 +60,6 @@ describe('Test the authentication api', () => {
   test('Non-registered user should successfully sign in via SSO', async () => {
     try {
       nonVerifedUser = await helper.post('/auth/login', testData.unverified_user, null).expect(200);
-      console.log(nonVerifedUser, 'VERIFIED USER');
       expect(nonVerifedUser.body._token).toBeTruthy();
       expect(nonVerifedUser.body.data).toBeTruthy();
       const decodedToken= Tokenization.verifyToken(nonVerifedUser.body._token);
@@ -109,7 +108,6 @@ describe('Test the authentication api', () => {
     }, '5504').expect(401);
   });
   test('Registered user should NOT call Admin route using API key', async () => {
-    console.log(verifedUser.body.data.role, 'role in test');
     await helper.putUsingKey(`/admin/users/${verifedUser.body.data._id.toString()}?userId=${ verifedUser.body.data._id.toString()}`, {
       'name': 'seun'
     }, appAdded.key).expect(401);

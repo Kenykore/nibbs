@@ -8,8 +8,6 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     if (process.env.ENVIRONMENT==='test') {
       return true;
     }
-    console.log('sending mail started');
-    console.log(process.env.SMTP_USERNAME, process.env.SMTP_PASSWORD);
     const transportOptions = {
       host: 'in-v3.mailjet.com',
       port: 465,
@@ -32,11 +30,8 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
       viewPath: 'emails',
       extName: '.hbs'
     };
-    console.log('creating mail transporter');
     const transporter = nodemailer.createTransport(transportOptions);
     transporter.use('compile', hbs(options));
-    console.log('complied mail transporter');
-    console.log(config.node_environment, 'node env');
     const emailPayload = {
       from: {
         name: 'Nibbs',
@@ -62,9 +57,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
         'x-mailjet-trackClick': '1'
       };
     }
-    console.log('sending mail....', emailPayload);
     const res = await transporter.sendMail(emailPayload);
-    console.log(res, 'mail sent');
     return true;
   } catch (error) {
     console.log(error, 'mail send error');

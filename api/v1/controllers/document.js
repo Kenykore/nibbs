@@ -28,10 +28,8 @@ class DocumentController {
       if (!req.files || Object.keys(req.files).length === 0) {
         return response.sendError({res, message: 'No Document file was uploaded'});
       }
-      console.log(req.files, 'files to upload');
       const user=req.userDetails;
 
-      console.log(req.body, 'body');
       /* istanbul ignore next */
       if (typeof req.body.recipients ==='string') {
         req.body.recipients=JSON.parse(req.body.recipients);
@@ -40,7 +38,6 @@ class DocumentController {
       if (typeof req.body.signatories ==='string') {
         req.body.signatories=JSON.parse(req.body.signatories);
       }
-      console.log(req.body, 'body');
       const {error} = validatePrepareDocument({...req.body});
       if (error) {
         return response.sendError({
@@ -49,7 +46,6 @@ class DocumentController {
         });
       }
       const files=await processFiles(req, user);
-      console.log(files[0].path, 'prepare file');
       const documentPrepared= await Document.create({...req.body, file: files[0].path, publicId: files[0].publicId, ownerId: user.userId});
       // send to all signatories
       if (documentPrepared) {
@@ -68,7 +64,6 @@ class DocumentController {
       });
     } catch (error) {
       /* istanbul ignore next */
-      console.log(error);
       /* istanbul ignore next */
       return next(error);
     }
@@ -78,7 +73,6 @@ class DocumentController {
       const user=req.userDetails;
 
       const files=req.files?await saveSignature(req, user):[];
-      console.log(files, 'files');
       if (files.length===0 && req.files) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
@@ -96,13 +90,11 @@ class DocumentController {
           message: error.details[0].message
         });
       }
-      console.log(user.email);
       const documentToSign= await Document.findById(req.body.documentId).lean();
       const signatories=documentToSign.signatories;
       const signatureFound=signatories.find((x)=>{
         return (x.email===user.email);
       });
-      console.log(signatureFound, 'signature');
       /* istanbul ignore next */
       if (!signatureFound) {
         return response.sendError({
@@ -113,7 +105,6 @@ class DocumentController {
       const signatureSignedFound=signatories.find((x)=>{
         return x.email===user.email && x.signed===true;
       });
-      console.log(signatureSignedFound);
       if (signatureSignedFound) {
         return response.sendError({
           res,
@@ -121,14 +112,10 @@ class DocumentController {
         });
       }
       const filePart=documentToSign.file.split('?');
-      console.log(filePart, 'file part');
       const fileTypeArray=filePart[0].split('.');
-      console.log(fileTypeArray, 'file type');
       const imgFile=['jpg', 'png', 'jpeg', 'svg'];
 
       const fileType=fileTypeArray[fileTypeArray.length-1];
-      console.log(fileType, 'file type');
-      console.log(signatureFound, 'signature found');
       if (!imgFile.includes(fileType)) {
         return await processDocument(res, req, documentToSign, user, signatureFound);
       } else {
@@ -136,7 +123,6 @@ class DocumentController {
       }
     } catch (error) {
       /* istanbul ignore next */
-      console.log(error, 'error of sign doc');
       /* istanbul ignore next */
       return next(error);
     }
@@ -198,7 +184,6 @@ class DocumentController {
       return response.sendError({res, message: 'No Document found', statusCode: status.NOT_FOUND});
     } catch (error) {
       /* istanbul ignore next */
-      console.log(error);
       /* istanbul ignore next */
       return next(error);
     }
@@ -224,7 +209,6 @@ class DocumentController {
       });
     } catch (error) {
       /* istanbul ignore next */
-      console.log(error);
       return next(error);
     }
   }
@@ -246,7 +230,6 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
-    console.log(signatureType);
     const pdfImage=await fetch(documentToSign.file);
     const signatureImageBytes=await signatureImage.buffer();
     const pdfImageBuffer=await pdfImage.buffer();
@@ -269,9 +252,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     const pdfBytes = await pdfDoc.save();
     const id='tempdoc.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
-    console.log(fileSaved, 'file saved');
     const file=await uploadSignedDoc(id, documentToSign.publicId);
-    console.log(file, 'file upload response');
     /* istanbul ignore next */
     if (!file) {
       return response.sendError({
@@ -291,7 +272,6 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
         documentId: documentUpdated._id
       });
       if (checkSignatureAllSigned(documentUpdated.signatories)) {
-        console.log('ready to send doc');
         await Document.findByIdAndUpdate(req.body.documentId, {signed: true});
         await sendDocumentToRecipients(documentUpdated);
       }
@@ -304,7 +284,6 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     });
   } catch (error) {
     /* istanbul ignore next */
-    console.log(error);
     /* istanbul ignore next */
     return false;
   }
@@ -321,17 +300,14 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
 async function processDocument(res, req, documentToSign, user, signatureFound) {
   try {
     const signError='Unable to sign document';
-    console.log(documentToSign.file, 'file');
     // change to minio
     const existingPdf =await fetch(documentToSign.file);
     const signatureImage = await fetch(req.body.signature);
     const signatureTypeArray=req.body.signature.split('.');
     const signatureType=signatureTypeArray[signatureTypeArray.length-1];
     const existingPdfBytes=await existingPdf.buffer();
-    console.log(existingPdf, 'existing pdf');
     const signatureImageBytes=await signatureImage.buffer();
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    console.log(pdfDoc, 'pdf');
     const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
     const pngDims = pngImage.scale(0.5);
     // Add a blank page to the document
@@ -343,12 +319,9 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
       height: 50,
     });
     const pdfBytes = await pdfDoc.save();
-    console.log('uploading file');
     const id='temp.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
-    console.log(fileSaved, 'file saved');
     const file=await uploadSignedDoc(id,documentToSign.publicId );
-    console.log(file, 'file upload response');
     /* istanbul ignore next */
     if (!file) {
       return response.sendError({
@@ -368,11 +341,9 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
         documentId: documentUpdated._id
       });
       if (checkSignatureAllSigned(documentUpdated.signatories)) {
-        console.log('ready to send doc');
         documentUpdated= await Document.findByIdAndUpdate(req.body.documentId, {signed: true}, {new: true}).lean();
         await sendDocumentToRecipients(documentUpdated);
       }
-      console.log('done');
       return response.sendSuccess({res, message: 'Document Signed Successfully', body: {data: documentUpdated}});
     }
     /* istanbul ignore next */
@@ -398,7 +369,6 @@ async function processFiles(req, user) {
     const files=[];
     for (const f of Object.keys(req.files)) {
       const allFiles=req.files[f];
-      console.log(allFiles, 'file');
       if (Array.isArray(allFiles)) {
         for (const ff of allFiles) {
           const fileUploaded=await uploadFile(ff, user.email);
@@ -410,7 +380,6 @@ async function processFiles(req, user) {
         }
       }
       const file=await uploadFile(allFiles, user.email);
-      console.log(file, 'file uploaded');
       if (!file) {
         continue;
       }
@@ -438,9 +407,7 @@ async function saveSignature(req, user) {
     for (const f of Object.keys(req.files)) {
       const allFiles=req.files[f];
 
-      console.log(allFiles, 'file');
       const file=await uploadSignature(allFiles, user.email);
-      console.log(file, 'file uploaded');
       /* istanbul ignore next */
       if (!file) {
         continue;
@@ -508,7 +475,6 @@ async function sendDocuments(signatories, documentPrepared) {
         verified: true
       });
       const url=`${process.env.BASE_URL}/append-document-open/${documentPrepared._id}/${accessToken}`;
-      console.log(process.env.BASE_URL, 'base url');
       await sendEmail({
         to: s.email,
         from: 'e-signaturenotification@nibss-plc.com.ng',
@@ -540,7 +506,6 @@ async function uploadFile(f, userId) {
   try {
     const publicId = `document_${userId}_${f.name}`;
     const fileFormat=f.mimetype.split('/')[1];
-    console.log(fileFormat, 'file format');
     await uploadFileMino(publicId, f.tempFilePath, fileFormat);
     const fileUploaded=await getFileUrl(publicId);
     return {file: f, path: fileUploaded, name: f.name, publicId: publicId};
@@ -560,7 +525,6 @@ async function uploadFile(f, userId) {
  */
 async function uploadSignature(f, userId) {
   try {
-    console.log(f, 'file in upload');
     const publicId = `signatures_${userId}_${f.name}`;
     await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
     const fileUploaded=await getFileUrl(publicId);
@@ -582,10 +546,8 @@ async function uploadSignature(f, userId) {
  */
 async function uploadSignedDoc(f, publicId) {
   try {
-    console.log(f, 'file in upload');
     await uploadFileMino(publicId, f, 'application/pdf');
     const fileUploaded=await getFileUrl(publicId);
-    console.log(fileUploaded, 'file');
     return {path: fileUploaded};
     /* istanbul ignore next */
   } catch (error) {
@@ -608,7 +570,6 @@ function checkSignatureAllSigned(data) {
       count++;
     }
   }
-  console.log(count, 'count');
   return count===data.length?true:false;
 }
 /* istanbul ignore next */
@@ -628,7 +589,6 @@ function saveFile(data, id) {
         console.log(err);
         resolve(false);
       }
-      console.log(f, 'file');
       resolve(f);
     });
   });
