@@ -78,7 +78,6 @@ documentModel.post('find', async (result, next) => {
     return next();
   }
   if (result && !lodash.isArray(result)) {
-    result.publicId, 'file document in model');
     result.file = await getFileUrl(result.publicId);
     return next();
   }
