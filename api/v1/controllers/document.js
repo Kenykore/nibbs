@@ -212,6 +212,16 @@ class DocumentController {
       return next(error);
     }
   }
+  static async fetchDocument(req, res, next) {
+    try {
+      const doc=await getFileUrl(req.body.documentId);
+      return response.sendSuccess({res, message: 'File found', body: {
+        file: doc
+      }});
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
 /**
  * Process pdf for image type doc file
@@ -321,7 +331,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const pdfBytes = await pdfDoc.save();
     const id='temp.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
-    const file=await uploadSignedDoc(id,documentToSign.publicId );
+    const file=await uploadSignedDoc(id, documentToSign.publicId );
     /* istanbul ignore next */
     if (!file) {
       return response.sendError({
