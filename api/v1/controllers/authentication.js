@@ -39,7 +39,7 @@ class AuthenticationController {
       // find the user in the db, if he or she does not exist, then return error
       /* istanbul ignore next */
       const {email, password} = req.body;
-      coonsole.log(email, password, 'password');
+      console.log(email, password, 'password');
       // const userName = email.split('@')[0];
       // // console.log('this is me here')
       /* istanbul ignore next */
