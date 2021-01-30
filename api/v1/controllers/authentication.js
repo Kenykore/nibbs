@@ -39,10 +39,10 @@ class AuthenticationController {
       /* istanbul ignore next */
       const {email, password} = req.body;
 
-      const userName = email.split('@')[0];
+      // const userName = email.split('@')[0];
       // // console.log('this is me here')
       /* istanbul ignore next */
-      const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
+    //  const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
       // // if he exists, then make a call to sso
       /* istanbul ignore next */
       // const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/login`, {
