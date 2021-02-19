@@ -82,6 +82,16 @@ documentModel.post('find', async (result, next) => {
     return next();
   }
 });
+documentModel.post('findOne', async (result, next) => {
+  if (result && result.length && result.length>0) {
+    result.file = await getFileUrl(result[0].publicId);
+    return next();
+  }
+  if (result && !lodash.isArray(result)) {
+    result.file = await getFileUrl(result.publicId);
+    return next();
+  }
+});
 module.exports = mongoose.model('document', documentModel);
 
 

@@ -41,7 +41,11 @@ const UtilityFunction = {
  */
   async getFileUrl(file) {
     try {
+      if (file.startsWith('https://')) {
+        return file;
+      }
       const fileUrl=await minioClient.presignedGetObject(process.env.MINO_BUCKET_NAME, file, 24*60*60*7);
+      console.log(fileUrl);
       return fileUrl;
     } catch (error) {
       console.log(error);

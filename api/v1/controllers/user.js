@@ -223,8 +223,12 @@ class UserController {
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
-      const signatures=files.concat(userFound.signatures);
-      const userUpdated= await User.findByIdAndUpdate(user.userId, {signatures: signatures}, {new: true});
+      await User.findByIdAndUpdate(user.userId, {$push: {
+        signatures: {
+          $each: files
+        }
+      }}, {new: true});
+      const userUpdated=await User.findById(user.userId);
       if (userUpdated) {
         const accessToken = Tokenizer.signToken({
           ...userUpdated.toObject(),
