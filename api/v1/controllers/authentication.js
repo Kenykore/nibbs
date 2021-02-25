@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const config = require('../../../config/index');
 const status = require('http-status');
 const fetch = require('node-fetch');
+const cors = require('cors');
 
 const request = require('request-promise');
 const response = require('../../../utilities/response');
