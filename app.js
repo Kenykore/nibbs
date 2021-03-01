@@ -23,20 +23,24 @@ app.use(fileUpload({
   createParentPath: true
 }));
 // var cors_options =
+/* istanbul ignore next */
 const allowedOrigins=[config.frontend_url];
+/* istanbul ignore next */
 app.use(cors({
   origin: function(origin, callback) {
     console.log(origin);
     // allow requests with no origin
     // (like mobile apps or curl requests)
+    /* istanbul ignore next */
     if (!origin) return callback(null, true);
     console.log(origin);
+    /* istanbul ignore next */
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not ' +
                 'allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
-
+    /* istanbul ignore next */
     return callback(null, true);
   }
 }));

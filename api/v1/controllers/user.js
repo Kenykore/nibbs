@@ -223,12 +223,14 @@ class UserController {
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
+      /* istanbul ignore next */
       await User.findByIdAndUpdate(user.userId, {$push: {
         signatures: {
           $each: files
         }
       }}, {new: true});
       const userUpdated=await User.findById(user.userId);
+      /* istanbul ignore next */
       if (userUpdated) {
         const accessToken = Tokenizer.signToken({
           ...userUpdated.toObject(),
@@ -669,7 +671,7 @@ tr:nth-child(even) {
 async function uploadFile(f, userId) {
   try {
     const publicId = `signatures_${userId}_${f.name}`;
-
+    /* istanbul ignore next */
     await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
     // const fileUploaded=await getFileUrl(publicId);
     return {file: f, path: publicId};
