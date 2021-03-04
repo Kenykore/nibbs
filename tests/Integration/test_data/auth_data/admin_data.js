@@ -1,6 +1,5 @@
 /* istanbul ignore file */
 const bcrypt = require('bcryptjs');
-const salt = bcrypt.genSaltSync(10);
 module.exports = {
   verified_admin: {
     'name': 'Oluwakorede',

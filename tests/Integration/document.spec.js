@@ -82,11 +82,10 @@ describe('Test the documents api', () => {
     const documentFound= await helper.get(`/documents/5e5c1ea3b8dded465a338e80`, null,
       verifedUser.body._token).expect(400);
   });
-  test('User should be able to fetch single document file using doc id', async ()=>{
-    const docFound=await helper.get(`/doc`, {
-      documentId: documentPrepared.body.data._id
+  test('User should be able to fetch single document file using doc public id', async ()=>{
+    const docFound=await helper.get(`/documents/doc`, {
+      documentId: documentPrepared.body.data.publicId
     }).expect(200);
-    expect(docFound.body.data.file).toBeTruthy();
   });
   test('Registered user should NOT fetch single with incorrect mongo id ', async () => {
     const documentFound= await helper.get(`/documents/hihihihihi`, null,

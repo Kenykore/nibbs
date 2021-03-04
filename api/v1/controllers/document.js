@@ -215,6 +215,7 @@ class DocumentController {
   static async fetchDocument(req, res, next) {
     try {
       const doc=await getFileUrl(req.query.documentId);
+      console.log(doc, 'doc');
       return response.sendSuccess({res, message: 'File found', body: {
         file: doc
       }});
