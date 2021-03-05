@@ -59,26 +59,7 @@ class AuthenticationController {
       // // if you need that user details
       /* istanbul ignore next */
       const userData = await getData.json();
-      // const userData={
-      //   meta: {status: 'okay', message: 'Login successful', info: 'success'},
-      //   data: {
-      //     dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
-      //     cn: 'Idris Kelani',
-      //     sn: 'Kelani',
-      //     givenName: 'Idris',
-      //     displayName: 'Idris Kelani',
-      //     memberOf: [
-      //       'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
-      //       'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
-      //       'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
-      //     ],
-      //     name: 'Idris Kelani',
-      //     sAMAccountName: 'ikelani',
-      //     userPrincipalName: email,
-      //     lastLogonTimestamp: '132505361245464469',
-      //     mail: email
-      //   }
-      // };
+
       /* istanbul ignore next */
       return await authenciateUser(req, res, next, userData);
       // example login data is
