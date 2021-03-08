@@ -28,12 +28,10 @@ const allowedOrigins=[config.frontend_url];
 /* istanbul ignore next */
 app.use(cors({
   origin: function(origin, callback) {
-    console.log(origin);
     // allow requests with no origin
     // (like mobile apps or curl requests)
     /* istanbul ignore next */
     if (!origin) return callback(null, true);
-    console.log(origin);
     /* istanbul ignore next */
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not ' +

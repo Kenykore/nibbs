@@ -27,7 +27,6 @@ class AuthenticationController {
   */
   static async login(req, res, next) {
     try {
-      console.log('working');
       const {error} = validateReg(req.body);
       if (error) {
         return response.sendError({
