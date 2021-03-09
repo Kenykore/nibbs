@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const config = require('../../../config/index');
 const status = require('http-status');
 const fetch = require('node-fetch');
+const cors = require('cors');
 
 const request = require('request-promise');
 const response = require('../../../utilities/response');
@@ -38,7 +39,7 @@ class AuthenticationController {
       // find the user in the db, if he or she does not exist, then return error
       /* istanbul ignore next */
       const {email, password} = req.body;
-
+      console.log(email, password, 'password');
       const userName = email.split('@')[0];
       // // console.log('this is me here')
       /* istanbul ignore next */
@@ -49,7 +50,7 @@ class AuthenticationController {
         method: 'get',
         headers: {Authorization: `Basic ${encodedData}`},
       });
-      /* istanbul ignore next */
+      // /* istanbul ignore next */
       if (!getData.ok) {
         /* istanbul ignore next */
         return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
@@ -57,6 +58,7 @@ class AuthenticationController {
       // // if you need that user details
       /* istanbul ignore next */
       const userData = await getData.json();
+
       /* istanbul ignore next */
       return await authenciateUser(req, res, next, userData);
       // example login data is

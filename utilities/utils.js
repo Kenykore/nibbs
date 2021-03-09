@@ -41,6 +41,13 @@ const UtilityFunction = {
  */
   async getFileUrl(file) {
     try {
+      const bucketexist=await minioClient.bucketExists(process.env.MINO_BUCKET_NAME);
+      if (!bucketexist) {
+        minioClient.makeBucket(process.env.MINO_BUCKET_NAME);
+      }
+      if (file.startsWith('https://')) {
+        return file;
+      }
       const fileUrl=await minioClient.presignedGetObject(process.env.MINO_BUCKET_NAME, file, 24*60*60*7);
       return fileUrl;
     } catch (error) {
@@ -57,6 +64,10 @@ const UtilityFunction = {
  */
   async uploadFileMino(name, path, contentType) {
     try {
+      const bucketexist=await minioClient.bucketExists(process.env.MINO_BUCKET_NAME);
+      if (!bucketexist) {
+        minioClient.makeBucket(process.env.MINO_BUCKET_NAME);
+      }
       const metaData =contentType? {
         'Content-Type': contentType,
       }:{
