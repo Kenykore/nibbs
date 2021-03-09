@@ -212,6 +212,13 @@ class DocumentController {
       return next(error);
     }
   }
+  /**
+   * fetch document file using doccument file name
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   * @return {Object}
+   */
   static async fetchDocument(req, res, next) {
     try {
       const doc=await getFileUrl(req.query.documentId);
