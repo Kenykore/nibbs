@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "cross-env ENVIRONMENT=test jest --testTimeout=20000 --runInBand --detectOpenHandles --coverage --forceExit"
+    "test": "cross-env ENVIRONMENT=test jest --testTimeout=50000 --runInBand --detectOpenHandles --coverage --forceExit"
   },
   "dependencies": {
     "@hapi/joi": "^17.1.1",
@@ -59,7 +59,7 @@
     "superagent": "^3.5.2"
   },
   "engines": {
-    "node": "15.5"
+    "node": "14"
   },
   "devDependencies": {
     "eslint": "^7.7.0",
