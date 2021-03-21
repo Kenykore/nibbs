@@ -10,7 +10,7 @@ const Minio = require('minio');
 const minioClient = new Minio.Client({
   endPoint: process.env.MINO_BASE_URL,
   port: 9000,
-  useSSL: true,
+  useSSL: process.env.USE_SSL_MINO==='yes'?true:false,
   accessKey: process.env.MINO_KEY,
   secretKey: process.env.MINO_SECRET
 });

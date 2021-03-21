@@ -569,7 +569,12 @@ async function uploadSignature(f, userId) {
  */
 async function uploadSignedDoc(f, publicId) {
   try {
-    await uploadFileMino(publicId, f, 'application/pdf');
+    const fileDidUpload= await uploadFileMino(publicId, f, 'application/pdf');
+    /* istanbul ignore next */
+
+    if (!fileDidUpload) {
+      return false;
+    }
     const fileUploaded=await getFileUrl(publicId);
     return {path: fileUploaded};
     /* istanbul ignore next */

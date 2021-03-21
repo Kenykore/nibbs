@@ -51,15 +51,15 @@ class UserController {
         /* istanbul ignore next */
 
         /* istanbul ignore next */
-        // const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${d.email}`, {
-        //   method: 'post',
-        // });
-        // //   /* istanbul ignore next */
-        // if (!getUserData.ok) {
-        //   // 'do what you want to do here if the user does not exist
+        const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${d.email}`, {
+          method: 'post',
+        });
         //   /* istanbul ignore next */
-        //   continue;
-        // }
+        if (!getUserData.ok) {
+          // 'do what you want to do here if the user does not exist
+          /* istanbul ignore next */
+          continue;
+        }
 
         // search for the user in the sso and do what you like if found
 
@@ -673,7 +673,12 @@ async function uploadFile(f, userId) {
   try {
     const publicId = `signatures_${userId}_${f.name}`;
     /* istanbul ignore next */
-    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    const uploadedFile= await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    /* istanbul ignore next */
+    if (!uploadedFile) {
+      /* istanbul ignore next */
+      return false;
+    }
     // const fileUploaded=await getFileUrl(publicId);
     return {file: f, path: publicId};
   } catch (error) {
