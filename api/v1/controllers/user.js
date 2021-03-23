@@ -673,7 +673,12 @@ async function uploadFile(f, userId) {
   try {
     const publicId = `signatures_${userId}_${f.name}`;
     /* istanbul ignore next */
-    await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    const uploadedFile= await uploadFileMino(publicId, f.tempFilePath, f.mimetype);
+    /* istanbul ignore next */
+    if (!uploadedFile) {
+      /* istanbul ignore next */
+      return false;
+    }
     // const fileUploaded=await getFileUrl(publicId);
     return {file: f, path: publicId};
   } catch (error) {

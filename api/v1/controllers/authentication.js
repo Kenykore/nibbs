@@ -58,7 +58,6 @@ class AuthenticationController {
       // // if you need that user details
       /* istanbul ignore next */
       const userData = await getData.json();
-
       /* istanbul ignore next */
       return await authenciateUser(req, res, next, userData);
       // example login data is
