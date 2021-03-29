@@ -14,5 +14,6 @@ const DocumentController = require('../controllers/document');
 router.post('/prepare', verifyUser, DocumentController.prepareDocument);
 router.post('/sign', verifyUser, DocumentController.signDocument);
 router.get('/', verifyUser, DocumentController.fetchAllDocument);
+router.get('/doc', DocumentController.fetchDocument);
 router.get('/:documentId', verifyUser, DocumentController.fetchSpecificDocument);
 module.exports = router;

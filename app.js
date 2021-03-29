@@ -1,4 +1,5 @@
 /* istanbul ignore file */
+require('dotenv').config();
 const port= process.env.PORT || 9700;
 const path = require('path');
 const fileUpload = require('express-fileupload');
@@ -9,7 +10,7 @@ const methodOverride = require('method-override');
 const cors = require('cors');
 const app = express();
 app.disable('x-powered-by');
-
+const config = require('./config/index');
 // 2.Express Configuration
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -22,8 +23,25 @@ app.use(fileUpload({
   createParentPath: true
 }));
 // var cors_options =
-
-
+/* istanbul ignore next */
+const allowedOrigins=[config.frontend_url];
+/* istanbul ignore next */
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin
+    // (like mobile apps or curl requests)
+    /* istanbul ignore next */
+    if (!origin) return callback(null, true);
+    /* istanbul ignore next */
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not ' +
+                'allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    /* istanbul ignore next */
+    return callback(null, true);
+  }
+}));
 // 1.notification variables
 
 

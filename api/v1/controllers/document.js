@@ -212,6 +212,23 @@ class DocumentController {
       return next(error);
     }
   }
+  /**
+   * fetch document file using doccument file name
+   * @param {Object} req
+   * @param {Object} res
+   * @param {Function} next
+   * @return {Object}
+   */
+  static async fetchDocument(req, res, next) {
+    try {
+      const doc=await getFileUrl(req.query.documentId);
+      return response.sendSuccess({res, message: 'File found', body: {
+        file: doc
+      }});
+    } catch (error) {
+      return next(error);
+    }
+  }
 }
 /**
  * Process pdf for image type doc file
@@ -321,7 +338,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const pdfBytes = await pdfDoc.save();
     const id='temp.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
-    const file=await uploadSignedDoc(id,documentToSign.publicId );
+    const file=await uploadSignedDoc(id, documentToSign.publicId );
     /* istanbul ignore next */
     if (!file) {
       return response.sendError({
@@ -370,12 +387,15 @@ async function processFiles(req, user) {
     for (const f of Object.keys(req.files)) {
       const allFiles=req.files[f];
       if (Array.isArray(allFiles)) {
+        /* istanbul ignore next */
         for (const ff of allFiles) {
+          /* istanbul ignore next */
           const fileUploaded=await uploadFile(ff, user.email);
           if (!fileUploaded) {
             /* istanbul ignore next */
             continue;
           }
+          /* istanbul ignore next */
           files.push({path: fileUploaded.path, publicId: fileUploaded.publicId});
         }
       }
@@ -491,6 +511,7 @@ async function sendDocuments(signatories, documentPrepared) {
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
@@ -513,6 +534,7 @@ async function uploadFile(f, userId) {
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
@@ -533,6 +555,7 @@ async function uploadSignature(f, userId) {
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
@@ -546,13 +569,19 @@ async function uploadSignature(f, userId) {
  */
 async function uploadSignedDoc(f, publicId) {
   try {
-    await uploadFileMino(publicId, f, 'application/pdf');
+    const fileDidUpload= await uploadFileMino(publicId, f, 'application/pdf');
+    /* istanbul ignore next */
+
+    if (!fileDidUpload) {
+      return false;
+    }
     const fileUploaded=await getFileUrl(publicId);
     return {path: fileUploaded};
     /* istanbul ignore next */
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
+    /* istanbul ignore next */
     return false;
   }
 }
