@@ -13,3 +13,4 @@ test.js
 .scannerwork/scanner-report/context-props.pb
 .scannerwork/scanner-report/metadata.pb
 .Ds_Store
+.idea
