@@ -39,14 +39,13 @@ class AuthenticationController {
       // find the user in the db, if he or she does not exist, then return error
       /* istanbul ignore next */
       const {email, password} = req.body;
-      console.log(email, password, 'password');
       const userName = email.split('@')[0];
       // // console.log('this is me here')
       /* istanbul ignore next */
       const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
       // // if he exists, then make a call to sso
       /* istanbul ignore next */
-      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/login`, {
+      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`, {
         method: 'get',
         headers: {Authorization: `Basic ${encodedData}`},
       });
