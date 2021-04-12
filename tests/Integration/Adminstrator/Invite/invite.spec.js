@@ -31,7 +31,7 @@ describe('Test the user invite api', () => {
     utils.uploadFileMino.mockResolvedValue('cc83c3f2fb5db6561ef4945f6eee031c');
     utils.getFileUrl.mockResolvedValue(signature);
     scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
-      .get('/login')
+      .get('/login/auth-only')
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {
