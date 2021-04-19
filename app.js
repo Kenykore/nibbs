@@ -33,11 +33,11 @@ app.use(cors({
     /* istanbul ignore next */
     if (!origin) return callback(null, true);
     /* istanbul ignore next */
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not ' +
-                'allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
+    // if (allowedOrigins.indexOf(origin) === -1) {
+    //   const msg = 'The CORS policy for this site does not ' +
+    //             'allow access from the specified Origin.';
+    //   return callback(new Error(msg), false);
+    // }
     /* istanbul ignore next */
     return callback(null, true);
   }
