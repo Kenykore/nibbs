@@ -29,6 +29,7 @@ const allowedOrigins=[config.frontend_url];
 /* istanbul ignore next */
 app.use(cors({
   origin: function(origin, callback) {
+    console.log(origin, 'origin');
     // allow requests with no origin
     // (like mobile apps or curl requests)
     /* istanbul ignore next */
