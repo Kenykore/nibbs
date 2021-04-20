@@ -15,6 +15,7 @@ const config = require('./config/index');
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '1000mb'}));
 app.use(logger('dev'));
 app.use(methodOverride());
 app.use(fileUpload({
