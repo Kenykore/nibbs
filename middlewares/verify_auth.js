@@ -54,7 +54,10 @@ const Secure = {
         }
         return next();
       }
+      console.log('verifying')
+
       const verified = Tokenizer.verifyToken(checkTokenIsValid(req, res));
+      console.log(verified,'verified')
       req.adminDetails = verified.data;
 
       // check if role is administrator
@@ -65,6 +68,7 @@ const Secure = {
       return next();
       /* istanbul ignore next */
     } catch (error) {
+      console.log(error, 'error');
       /* istanbul ignore next */
       return next(error);
     }
