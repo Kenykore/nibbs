@@ -51,7 +51,8 @@ const documentModel= new mongoose.Schema({
     default: 'Nibbs'
   },
   documentProperty: [{
-    type: String,
+    name: String,
+    page: Number,
     x_coordinate: Number,
     y_coordinate: Number,
   }],

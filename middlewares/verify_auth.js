@@ -54,10 +54,8 @@ const Secure = {
         }
         return next();
       }
-      console.log('verifying');
 
       const verified = Tokenizer.verifyToken(checkTokenIsValid(req, res));
-      console.log(verified, 'verified');
       req.adminDetails = verified.data;
 
       // check if role is administrator
@@ -82,7 +80,6 @@ const Secure = {
  */
 function checkTokenIsValid(req, res) {
   let token = req.header('Authorization');
-  console.log(token, 'token');
   if (!token) {
     return response.sendError({res, message: authFailure, statusCode: status.UNAUTHORIZED});
   }
