@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const objectId= require('mongoose').Types.ObjectId;
+const moment=require('moment');
 const config = require('../../../config/index');
 const fs = require('fs');
 const base64Convert=require('base64-arraybuffer');
@@ -7,6 +8,7 @@ const status = require('http-status');
 const request = require('request-promise');
 const response = require('../../../utilities/response');
 const User=require('../../../models/user');
+
 const Document=require('../../../models/document');
 const DocumentLog=require('../../../models/document_log');
 const fetch = require('node-fetch');
@@ -17,6 +19,8 @@ const sendEmail = require('../../../services/Notification');
 const validateSignDocument = require('../../../validations/validate_document_sign');
 const validatePrepareDocument = require('../../../validations/validate_document_prepare');
 const PDFDocument= require('pdf-lib').PDFDocument;
+const Standard=require('pdf-lib').StandardFonts;
+const rgb =require('pdf-lib').rgb;
 const {randomNumber, formatPhoneNumber, addLeadingZeros, uploadFileMino, getFileUrl} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
 /**
@@ -37,6 +41,10 @@ class DocumentController {
       /* istanbul ignore next */
       if (typeof req.body.signatories ==='string') {
         req.body.signatories=JSON.parse(req.body.signatories);
+      }
+      /* istanbul ignore next */
+      if (typeof req.body. documentProperty ==='string') {
+        req.body. documentProperty=JSON.parse(req.body.documentProperty);
       }
       const {error} = validatePrepareDocument({...req.body});
       if (error) {
@@ -376,6 +384,59 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
   }
 }
 /**
+ * [async description]
+ * [req description]
+ * @param   {Object}  documentToSign  [documentToSign description]
+ * @param   {Object}  name        [name initials]
+ *@param {any} property property of
+ @param {any} dateProperty property of
+date stamo
+ * @return  {Promise<any>}                  [return description]
+ */
+async function processDocumentInitials( documentToSign, name, property, dateProperty=null) {
+  try {
+    // change to minio
+    const existingPdf =await fetch(documentToSign);
+    const existingPdfBytes=await existingPdf.buffer();
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    // Add a blank page to the document
+    const page = pdfDoc.getPage(Number(property.page) || 0);
+    const timesRomanFont = await pdfDoc.embedFont(Standard.TimesRoman);
+    page.setFont(timesRomanFont);
+    console.log(name);
+    page.drawText(name, {
+      x: property.x_coordinate,
+      y: property.y_coordinate,
+      font: timesRomanFont,
+      size: 24,
+      color: rgb(1, 0, 0),
+      lineHeight: 24,
+      opacity: 0.75,
+    });
+    if (dateProperty) {
+      page.drawText(moment(Date.now()).format('DD/MM/YYYY HH:mm'), {
+        x: dateProperty.x_coordinate,
+        y: dateProperty.y_coordinate,
+        size: 12,
+      });
+    }
+    const pdfBytes = await pdfDoc.save();
+    const id='tempinit.pdf';
+    const fileSaved=await saveFile(pdfBytes, id);
+    const file=await uploadSignedDoc(id, name );
+    /* istanbul ignore next */
+    if (!file) {
+      return false;
+    }
+    return file.path;
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    /* istanbul ignore next */
+    return false;
+  }
+}
+/**
  * Process file upload
  *@param {Object} req object
  @param {Object} user
@@ -452,7 +513,18 @@ async function saveSignature(req, user) {
 async function sendDocumentToRecipients(documentUpdated) {
   try {
     const filename=`${documentUpdated.documentTitle}.pdf`;
+    const docInitials=documentUpdated.documentProperty? documentUpdated.documentProperty.find((x)=>{
+      return (x.name==='initials');
+    }) : null;
+    const docDateStamp=documentUpdated.documentProperty? documentUpdated.documentProperty.find((x)=>{
+      return (x.name==='dateStamp');
+    }) : null;
     for (const s of documentUpdated.recipients) {
+      let docUrl=documentUpdated.file;
+      if (docInitials) {
+        const fileurl =await processDocumentInitials(docUrl, s.name, docInitials, docDateStamp);
+        docUrl=fileurl?fileurl:docUrl;
+      }
       await sendEmail({
         to: s.email,
         from: 'e-signaturenotification@nibss-plc.com.ng',
@@ -463,11 +535,11 @@ async function sendDocumentToRecipients(documentUpdated) {
           title: documentUpdated.documentTitle,
           body: documentUpdated.documentBody,
           campaignId: documentUpdated._id,
-          url: documentUpdated.file
+          url: docUrl
         },
         attachment: [{
           filename: filename,
-          path: documentUpdated.file
+          path: docUrl
         }]
       });
     }

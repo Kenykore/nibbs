@@ -9,7 +9,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
       return true;
     }
     const transportOptions = {
-      host: 'in-v3.mailjet.com',
+      host: 'nibss-plc.com.ng',
       port: 465,
       auth: {
         user: process.env.SMTP_USERNAME,
@@ -35,11 +35,11 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     const emailPayload = {
       from: {
         name: 'Nibbs',
-        address: 'info@zeedas.com'
+        address: 'e-signaturenotification@nibss-plc.com.ng'
       },
       to: details.to,
       priority: 'high',
-      replyTo: details.replyTo || 'info@zeedas.com',
+      replyTo: details.replyTo || 'e-signaturenotification@nibss-plc.com.ng',
       attachments: details.attachment?details.attachment:[],
       bcc: details.bcc === undefined ?
         [] :
@@ -51,13 +51,14 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
       config.node_environment !== 'staging' ? details.data :{mailType: `This mail is sent from the ${config.node_environment} platform, 
       do not take action`, ...details.data}
     };
-    if (details.data.campaignId) {
-      emailPayload.headers={
-        'x-mailjet-campaign': details.data.campaignId.toString(),
-        'x-mailjet-trackClick': '1'
-      };
-    }
+    // if (details.data.campaignId) {
+    //   emailPayload.headers={
+    //     'x-mailjet-campaign': details.data.campaignId.toString(),
+    //     'x-mailjet-trackClick': '1'
+    //   };
+    // }
     const res = await transporter.sendMail(emailPayload);
+    console.log(res, 'res mail');
     return true;
   } catch (error) {
     console.log(error, 'mail send error');

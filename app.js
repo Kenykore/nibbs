@@ -15,6 +15,7 @@ const config = require('./config/index');
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '1000mb'}));
 app.use(logger('dev'));
 app.use(methodOverride());
 app.use(fileUpload({
@@ -28,6 +29,7 @@ const allowedOrigins=[config.frontend_url];
 /* istanbul ignore next */
 app.use(cors({
   origin: function(origin, callback) {
+    console.log(origin, 'origin');
     // allow requests with no origin
     // (like mobile apps or curl requests)
     /* istanbul ignore next */

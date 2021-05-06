@@ -54,6 +54,7 @@ const Secure = {
         }
         return next();
       }
+
       const verified = Tokenizer.verifyToken(checkTokenIsValid(req, res));
       req.adminDetails = verified.data;
 
@@ -65,6 +66,7 @@ const Secure = {
       return next();
       /* istanbul ignore next */
     } catch (error) {
+      console.log(error, 'error');
       /* istanbul ignore next */
       return next(error);
     }
