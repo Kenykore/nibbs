@@ -17,17 +17,22 @@ module.exports = {
   document_preparation: {
     documentBody: '<p>This is a demo document 2</p>',
     recipients: JSON.stringify( [{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com'}]),
-    signatories: JSON.stringify([
-      {'name': 'Oluwakorede', 'email': 'kenykore@gmail.com', 'x_coordinate': 4, 'y_coordinate': 60, 'page': 1},
-      {'name': 'OluwakoredeMVX', 'email': 'korede.moshood@mvxchange.com', 'x_coordinate': 5, 'y_coordinate': 20, 'page': 1},
-    ]),
+    signatories: JSON.stringify(
+      [
+        {'name': 'Oluwakorede', 'email': 'kenykore@gmail.com',
+          'coordinates': [{'x_coordinate': 4, 'y_coordinate': 60, 'page': 0}, {'x_coordinate': 10, 'y_coordinate': 90, 'page': 1}]},
+        {'name': 'OluwakoredeMVX', 'email': 'korede.moshood@mvxchange.com',
+          'coordinates': [{'x_coordinate': 4, 'y_coordinate': 60, 'page': 0}, {'x_coordinate': 10, 'y_coordinate': 90, 'page': 1}]
+        },
+      ]),
     documentTitle: 'Test'
   },
   document_preparation_two: {
     documentBody: '<p>This is a demo document 2</p>',
     recipients: JSON.stringify( [{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com'}]),
     signatories: JSON.stringify([
-      {'name': 'OluwakoredeMVX', 'email': 'korede.moshood@mvxchange.com', 'x_coordinate': 5, 'y_coordinate': 20, 'page': 1},
+      {'name': 'OluwakoredeMVX', 'email': 'korede.moshood@mvxchange.com',
+        'coordinates': [{'x_coordinate': 4, 'y_coordinate': 60, 'page': 0}, {'x_coordinate': 10, 'y_coordinate': 90, 'page': 1}]},
     ]),
     documentTitle: 'Test'
   },

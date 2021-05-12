@@ -43,8 +43,8 @@ class DocumentController {
         req.body.signatories=JSON.parse(req.body.signatories);
       }
       /* istanbul ignore next */
-      if (typeof req.body. documentProperty ==='string') {
-        req.body. documentProperty=JSON.parse(req.body.documentProperty);
+      if (typeof req.body.documentProperty ==='string') {
+        req.body.documentProperty=JSON.parse(req.body.documentProperty);
       }
       const {error} = validatePrepareDocument({...req.body});
       if (error) {
@@ -268,12 +268,14 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
       width: page.getWidth(),
       height: page.getHeight(),
     });
-    page.drawImage(pngImage, {
-      x: signatureFound.x_coordinate,
-      y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-      width: 50,
-      height: 50,
-    });
+    for (const s of signatureFound) {
+      page.drawImage(pngImage, {
+        x: s.x_coordinate,
+        y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
+        width: 50,
+        height: 50,
+      });
+    }
     const pdfBytes = await pdfDoc.save();
     const id='tempdoc.pdf';
     const fileSaved=await saveFile(pdfBytes, id);
@@ -336,13 +338,17 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
     const pngDims = pngImage.scale(0.5);
     // Add a blank page to the document
-    const page = pdfDoc.getPage(Number(signatureFound.page) || 0);
-    page.drawImage(pngImage, {
-      x: signatureFound.x_coordinate,
-      y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-      width: 50,
-      height: 50,
-    });
+
+    for (const s of signatureFound.coordinates) {
+      const page = pdfDoc.getPage(Number(s.page) || 0);
+      page.drawImage(pngImage, {
+        x: s.x_coordinate,
+        y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
+        width: 50,
+        height: 50,
+      });
+    }
+
     const pdfBytes = await pdfDoc.save();
     const id='temp.pdf';
     const fileSaved=await saveFile(pdfBytes, id);

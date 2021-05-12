@@ -58,11 +58,13 @@ const documentModel= new mongoose.Schema({
   }],
   recipients: [{name: String, email: String, open: {type: Boolean, default: false}}],
   signatories: [{
-    page: String,
     name: String,
     email: String,
-    x_coordinate: Number,
-    y_coordinate: Number,
+    coordinates: [{
+      x_coordinate: Number,
+      y_coordinate: Number,
+      page: String,
+    }],
     signed: {
       type: Boolean,
       default: false
