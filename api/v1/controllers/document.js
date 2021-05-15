@@ -87,7 +87,7 @@ class DocumentController {
       if (files.length>0) {
         req.body.signature=files[0];
         await User.findByIdAndUpdate(user.userId, {
-          $push: {signatures: files[0]}
+          $push: {signatures: {url: files[0]}}
         });
       }
 

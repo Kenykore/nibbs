@@ -7,8 +7,14 @@ module.exports = {
     'password': 'boluwatife',
     'email': 'kenykore@gmail.com',
     'signatures': [
-      'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
-      'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+      {
+        url: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
+      },
+      {
+        url: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+      }
+
+
     ],
     'role': 'administrator',
     'mobile': '+2348133699506',
@@ -41,8 +47,12 @@ module.exports = {
     'username': 'kenymvx',
     'email': 'korede.moshood@mvxchange.com',
     'signatures': [
-      'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
-      'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+      {
+        url: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
+      },
+      {
+        url: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+      }
     ],
     'role': 'user',
     'status': 'active',
