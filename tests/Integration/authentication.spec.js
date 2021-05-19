@@ -16,9 +16,8 @@ const fs = require('fs');
 const app = require('../../app');
 describe('Test the authentication api', () => {
   beforeAll(async () => {
-    console.log(process.env.SINGLE_AUTH_SERVICE_LOGIN_URL, 'urk');
     scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
-      .get()
+      .get('/login/auth-only')
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {

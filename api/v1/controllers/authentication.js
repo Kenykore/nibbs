@@ -45,8 +45,8 @@ class AuthenticationController {
       const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
       // // // if he exists, then make a call to sso
       // /* istanbul ignore next */
-      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`, {
-        method: 'GET',
+      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}/login/auth-only`, {
+        method: 'get',
         headers: {Authorization: `Basic ${encodedData}`},
       });
       // /* istanbul ignore next */
