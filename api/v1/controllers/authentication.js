@@ -46,7 +46,7 @@ class AuthenticationController {
       // // // if he exists, then make a call to sso
       // /* istanbul ignore next */
       const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`, {
-        method: 'get',
+        method: 'GET',
         headers: {Authorization: `Basic ${encodedData}`},
       });
       // /* istanbul ignore next */
@@ -86,6 +86,7 @@ class AuthenticationController {
     } catch (error) {
       /* istanbul ignore next */
       /* istanbul ignore next */
+      console.log(error)
       return next(error);
     }
   }

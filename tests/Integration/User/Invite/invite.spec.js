@@ -24,8 +24,8 @@ describe('Test the user invite api', () => {
     utils.getFileUrl.mockResolvedValue(signature);
   });
   beforeAll(async () => {
-    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
-      .get('/login/auth-only')
+    scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
+      .get()
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {
@@ -46,7 +46,7 @@ describe('Test the user invite api', () => {
           mail: 'ikelani@nibss-plc.com.ng'
         }
       });
-    invitescope=nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+    invitescope=nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
       .post('/search').query((actualQueryObject)=>{
         if (actualQueryObject.staffEmail) {
           return true;

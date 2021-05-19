@@ -11,8 +11,8 @@ let scope=null;
 const testData= require('./../../test_data/auth_data/admin_data');
 describe('Test the profile api', () => {
   beforeAll(async () => {
-    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
-      .get('/login/auth-only')
+    scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
+      .get()
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {
