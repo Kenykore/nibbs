@@ -16,7 +16,7 @@ let documentPrepared=null;
 describe('Test the documents api', () => {
   beforeAll(async () => {
     scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
-      .get()
+      .get('/login/auth-only')
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {
