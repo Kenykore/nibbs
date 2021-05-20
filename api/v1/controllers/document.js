@@ -268,7 +268,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
       width: page.getWidth(),
       height: page.getHeight(),
     });
-    for (const s of signatureFound) {
+    for (const s of signatureFound.coordinates) {
       page.drawImage(pngImage, {
         x: s.x_coordinate,
         y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
@@ -311,6 +311,7 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
     });
   } catch (error) {
     /* istanbul ignore next */
+    console.log(error, 'error');
     /* istanbul ignore next */
     return false;
   }
