@@ -52,7 +52,7 @@ describe('Test the user invite api', () => {
           mail: 'ikelani@nibss-plc.com.ng'
         }
       });
-    invitescope=nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
+    invitescope=nock(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}`).persist()
       .post('/search').query((actualQueryObject)=>{
         if (actualQueryObject.staffEmail) {
           return true;

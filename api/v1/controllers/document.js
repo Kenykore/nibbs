@@ -519,14 +519,17 @@ async function saveSignature(req, user) {
 async function sendDocumentToRecipients(documentUpdated) {
   try {
     const filename=`${documentUpdated.documentTitle}.pdf`;
+    /* istanbul ignore next */
     const docInitials=documentUpdated.documentProperty? documentUpdated.documentProperty.find((x)=>{
       return (x.name==='initials');
     }) : null;
+      /* istanbul ignore next */
     const docDateStamp=documentUpdated.documentProperty? documentUpdated.documentProperty.find((x)=>{
       return (x.name==='dateStamp');
     }) : null;
     for (const s of documentUpdated.recipients) {
       let docUrl=documentUpdated.file;
+      /* istanbul ignore next */
       if (docInitials) {
         const fileurl =await processDocumentInitials(docUrl, s.name, docInitials, docDateStamp);
         docUrl=fileurl?fileurl:docUrl;
