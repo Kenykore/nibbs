@@ -46,7 +46,9 @@ class DocumentController {
       if (typeof req.body.documentProperty ==='string') {
         req.body.documentProperty=JSON.parse(req.body.documentProperty);
       }
+
       const {error} = validatePrepareDocument({...req.body});
+      /* istanbul ignore next */
       if (error) {
         return response.sendError({
           res,
@@ -56,6 +58,7 @@ class DocumentController {
       const files=await processFiles(req, user);
       const documentPrepared= await Document.create({...req.body, file: files[0].path, publicId: files[0].publicId, ownerId: user.userId});
       // send to all signatories
+      /* istanbul ignore next */
       if (documentPrepared) {
         await sendDocuments(req.body.signatories, documentPrepared);
         await DocumentLog.create({
@@ -268,17 +271,10 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
       width: page.getWidth(),
       height: page.getHeight(),
     });
-    for (const s of signatureFound.coordinates) {
-      page.drawImage(pngImage, {
-        x: s.x_coordinate,
-        y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
-        width: 50,
-        height: 50,
-      });
-    }
+    attachSignatureToPage(signatureFound, page, pngImage, pngDims);
     const pdfBytes = await pdfDoc.save();
     const id='tempdoc.pdf';
-    const fileSaved=await saveFile(pdfBytes, id);
+    await saveFile(pdfBytes, id);
     const file=await uploadSignedDoc(id, documentToSign.publicId);
     /* istanbul ignore next */
     if (!file) {
@@ -338,7 +334,6 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
     const pngDims = pngImage.scale(0.5);
     // Add a blank page to the document
-
     for (const s of signatureFound.coordinates) {
       const page = pdfDoc.getPage(Number(s.page) || 0);
       page.drawImage(pngImage, {
@@ -351,7 +346,7 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
 
     const pdfBytes = await pdfDoc.save();
     const id='temp.pdf';
-    const fileSaved=await saveFile(pdfBytes, id);
+    await saveFile(pdfBytes, id);
     const file=await uploadSignedDoc(id, documentToSign.publicId );
     /* istanbul ignore next */
     if (!file) {
@@ -428,7 +423,7 @@ async function processDocumentInitials( documentToSign, name, property, dateProp
     }
     const pdfBytes = await pdfDoc.save();
     const id='tempinit.pdf';
-    const fileSaved=await saveFile(pdfBytes, id);
+    await saveFile(pdfBytes, id);
     const file=await uploadSignedDoc(id, name );
     /* istanbul ignore next */
     if (!file) {
@@ -702,5 +697,25 @@ function saveFile(data, id) {
       resolve(f);
     });
   });
+}
+/**
+ * Attach Signature to doc pages
+ *
+ * @param   {Object}  signatureFound  [signatureFound description]
+ * @param   {Any}  page            [page description]
+ *@param {any} data
+ @param {any} pngDims
+ * @return  {Any}                  [return description]
+ */
+function attachSignatureToPage(signatureFound, page, data, pngDims) {
+  for (const s of signatureFound.coordinates) {
+    page.drawImage(data, {
+      x: s.x_coordinate,
+      y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
+      width: 50,
+      height: 50,
+    });
+  }
+  return page;
 }
 module.exports=DocumentController;

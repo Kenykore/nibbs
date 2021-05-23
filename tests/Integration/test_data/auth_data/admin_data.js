@@ -22,6 +22,8 @@ module.exports = {
   },
   document_preparation: {
     documentBody: '<p>This is a demo document 2</p>',
+    documentProperty: [{'name': 'initials', 'page': 0, 'x_coordinate': 60,
+      'y_coordinate': 60}, {'name': 'dateStamp', 'page': 0, 'x_coordinate': 80, 'y_coordinate': 60}],
     recipients: JSON.stringify( [{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com'}]),
     signatories: JSON.stringify(
       [
@@ -35,6 +37,8 @@ module.exports = {
   },
   document_preparation_two: {
     documentBody: '<p>This is a demo document 2</p>',
+    documentProperty: [{'name': 'initials', 'page': 0, 'x_coordinate': 60,
+      'y_coordinate': 60}, {'name': 'dateStamp', 'page': 0, 'x_coordinate': 80, 'y_coordinate': 60}],
     recipients: JSON.stringify( [{'name': 'Oluwakorede', 'email': 'kenykore@gmail.com'}]),
     signatories: JSON.stringify([
       {'name': 'OluwakoredeMVX', 'email': 'korede.moshood@mvxchange.com',
