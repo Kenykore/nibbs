@@ -9,7 +9,7 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
       return true;
     }
     const transportOptions = {
-      host: 'in-v3.mailjet.com',
+      host: 'nibss-plc.com.ng',
       port: 465,
       auth: {
         user: process.env.SMTP_USERNAME,
@@ -35,11 +35,11 @@ const SendEmail = async (details={to: '', from: '', subject: '', template_name: 
     const emailPayload = {
       from: {
         name: 'Nibbs',
-        address: 'anthony@zeedas.com'
+        address: process.env.SMTP_USERNAME
       },
       to: details.to,
       priority: 'high',
-      replyTo: details.replyTo || 'anthony@zeedas.com',
+      replyTo: details.replyTo,
       attachments: details.attachment?details.attachment:[],
       bcc: details.bcc === undefined ?
         [] :
