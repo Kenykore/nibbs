@@ -43,9 +43,9 @@ class AuthenticationController {
       // // console.log('this is me here')
       /* istanbul ignore next */
       const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
-      // // if he exists, then make a call to sso
-      /* istanbul ignore next */
-      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`, {
+      // // // if he exists, then make a call to sso
+      // /* istanbul ignore next */
+      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}/login/auth-only`, {
         method: 'get',
         headers: {Authorization: `Basic ${encodedData}`},
       });
@@ -86,6 +86,7 @@ class AuthenticationController {
     } catch (error) {
       /* istanbul ignore next */
       /* istanbul ignore next */
+      console.log(error);
       return next(error);
     }
   }
@@ -148,6 +149,7 @@ class AuthenticationController {
       if (roleDeleted) {
         return response.sendSuccess({res, message: 'Role deleted'});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Role could not be deleted'});
     } catch (error) {
       return next(error);
@@ -176,6 +178,7 @@ async function authenciateUser(req, res, next, userData) {
         status: 'inactive'
       }
     };
+      /* istanbul ignore next */
     if (!userDetails.data) {
       return response.sendError({res, message: userData.meta.message});
     }
@@ -197,6 +200,7 @@ async function authenciateUser(req, res, next, userData) {
       body: {_token: accessToken, data: {...data.user, userCount: await User.countDocuments()}}
     });
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
     return next(error);
   }

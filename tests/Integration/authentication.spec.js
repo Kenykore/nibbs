@@ -16,7 +16,7 @@ const fs = require('fs');
 const app = require('../../app');
 describe('Test the authentication api', () => {
   beforeAll(async () => {
-    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+    scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
       .get('/login/auth-only')
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},

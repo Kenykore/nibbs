@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const objectId= require('mongoose').Types.ObjectId;
+const moment=require('moment');
 const config = require('../../../config/index');
 const fs = require('fs');
 const base64Convert=require('base64-arraybuffer');
@@ -7,6 +8,7 @@ const status = require('http-status');
 const request = require('request-promise');
 const response = require('../../../utilities/response');
 const User=require('../../../models/user');
+
 const Document=require('../../../models/document');
 const DocumentLog=require('../../../models/document_log');
 const fetch = require('node-fetch');
@@ -17,6 +19,8 @@ const sendEmail = require('../../../services/Notification');
 const validateSignDocument = require('../../../validations/validate_document_sign');
 const validatePrepareDocument = require('../../../validations/validate_document_prepare');
 const PDFDocument= require('pdf-lib').PDFDocument;
+const Standard=require('pdf-lib').StandardFonts;
+const rgb =require('pdf-lib').rgb;
 const {randomNumber, formatPhoneNumber, addLeadingZeros, uploadFileMino, getFileUrl} = require('../../../utilities/utils');
 const SendEmail = require('../../../services/Notification');
 /**
@@ -38,7 +42,13 @@ class DocumentController {
       if (typeof req.body.signatories ==='string') {
         req.body.signatories=JSON.parse(req.body.signatories);
       }
+      /* istanbul ignore next */
+      if (typeof req.body.documentProperty ==='string') {
+        req.body.documentProperty=JSON.parse(req.body.documentProperty);
+      }
+
       const {error} = validatePrepareDocument({...req.body});
+      /* istanbul ignore next */
       if (error) {
         return response.sendError({
           res,
@@ -48,6 +58,7 @@ class DocumentController {
       const files=await processFiles(req, user);
       const documentPrepared= await Document.create({...req.body, file: files[0].path, publicId: files[0].publicId, ownerId: user.userId});
       // send to all signatories
+      /* istanbul ignore next */
       if (documentPrepared) {
         await sendDocuments(req.body.signatories, documentPrepared);
         await DocumentLog.create({
@@ -79,7 +90,7 @@ class DocumentController {
       if (files.length>0) {
         req.body.signature=files[0];
         await User.findByIdAndUpdate(user.userId, {
-          $push: {signatures: files[0]}
+          $push: {signatures: {url: files[0]}}
         });
       }
 
@@ -260,15 +271,10 @@ async function processImageDocument(res, req, documentToSign, user, signatureFou
       width: page.getWidth(),
       height: page.getHeight(),
     });
-    page.drawImage(pngImage, {
-      x: signatureFound.x_coordinate,
-      y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-      width: 50,
-      height: 50,
-    });
+    attachSignatureToPage(signatureFound, page, pngImage, pngDims);
     const pdfBytes = await pdfDoc.save();
     const id='tempdoc.pdf';
-    const fileSaved=await saveFile(pdfBytes, id);
+    await saveFile(pdfBytes, id);
     const file=await uploadSignedDoc(id, documentToSign.publicId);
     /* istanbul ignore next */
     if (!file) {
@@ -328,16 +334,19 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
     const pngImage = signatureType==='jpg'?await pdfDoc.embedJpg(signatureImageBytes): await pdfDoc.embedPng(signatureImageBytes);
     const pngDims = pngImage.scale(0.5);
     // Add a blank page to the document
-    const page = pdfDoc.getPage(Number(signatureFound.page) || 0);
-    page.drawImage(pngImage, {
-      x: signatureFound.x_coordinate,
-      y: Number(page.getHeight()-signatureFound.y_coordinate-pngDims.height-10),
-      width: 50,
-      height: 50,
-    });
+    for (const s of signatureFound.coordinates) {
+      const page = pdfDoc.getPage(Number(s.page) || 0);
+      page.drawImage(pngImage, {
+        x: s.x_coordinate,
+        y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
+        width: 50,
+        height: 50,
+      });
+    }
+
     const pdfBytes = await pdfDoc.save();
     const id='temp.pdf';
-    const fileSaved=await saveFile(pdfBytes, id);
+    await saveFile(pdfBytes, id);
     const file=await uploadSignedDoc(id, documentToSign.publicId );
     /* istanbul ignore next */
     if (!file) {
@@ -368,6 +377,59 @@ async function processDocument(res, req, documentToSign, user, signatureFound) {
       res,
       message: signError
     });
+  } catch (error) {
+    /* istanbul ignore next */
+    console.log(error);
+    /* istanbul ignore next */
+    return false;
+  }
+}
+/**
+ * [async description]
+ * [req description]
+ * @param   {Object}  documentToSign  [documentToSign description]
+ * @param   {Object}  name        [name initials]
+ *@param {any} property property of
+ @param {any} dateProperty property of
+date stamo
+ * @return  {Promise<any>}                  [return description]
+ */
+async function processDocumentInitials( documentToSign, name, property, dateProperty=null) {
+  try {
+    // change to minio
+    const existingPdf =await fetch(documentToSign);
+    const existingPdfBytes=await existingPdf.buffer();
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    // Add a blank page to the document
+    const page = pdfDoc.getPage(Number(property.page) || 0);
+    const timesRomanFont = await pdfDoc.embedFont(Standard.TimesRoman);
+    page.setFont(timesRomanFont);
+    console.log(name);
+    page.drawText(name, {
+      x: property.x_coordinate,
+      y: property.y_coordinate,
+      font: timesRomanFont,
+      size: 24,
+      color: rgb(1, 0, 0),
+      lineHeight: 24,
+      opacity: 0.75,
+    });
+    if (dateProperty) {
+      page.drawText(moment(Date.now()).format('DD/MM/YYYY HH:mm'), {
+        x: dateProperty.x_coordinate,
+        y: dateProperty.y_coordinate,
+        size: 12,
+      });
+    }
+    const pdfBytes = await pdfDoc.save();
+    const id='tempinit.pdf';
+    await saveFile(pdfBytes, id);
+    const file=await uploadSignedDoc(id, name );
+    /* istanbul ignore next */
+    if (!file) {
+      return false;
+    }
+    return file.path;
   } catch (error) {
     /* istanbul ignore next */
     console.log(error);
@@ -452,7 +514,21 @@ async function saveSignature(req, user) {
 async function sendDocumentToRecipients(documentUpdated) {
   try {
     const filename=`${documentUpdated.documentTitle}.pdf`;
+    /* istanbul ignore next */
+    const docInitials=documentUpdated.documentProperty? documentUpdated.documentProperty.find((x)=>{
+      return (x.name==='initials');
+    }) : null;
+      /* istanbul ignore next */
+    const docDateStamp=documentUpdated.documentProperty? documentUpdated.documentProperty.find((x)=>{
+      return (x.name==='dateStamp');
+    }) : null;
     for (const s of documentUpdated.recipients) {
+      let docUrl=documentUpdated.file;
+      /* istanbul ignore next */
+      if (docInitials) {
+        const fileurl =await processDocumentInitials(docUrl, s.name, docInitials, docDateStamp);
+        docUrl=fileurl?fileurl:docUrl;
+      }
       await sendEmail({
         to: s.email,
         from: 'e-signaturenotification@nibss-plc.com.ng',
@@ -463,11 +539,11 @@ async function sendDocumentToRecipients(documentUpdated) {
           title: documentUpdated.documentTitle,
           body: documentUpdated.documentBody,
           campaignId: documentUpdated._id,
-          url: documentUpdated.file
+          url: docUrl
         },
         attachment: [{
           filename: filename,
-          path: documentUpdated.file
+          path: docUrl
         }]
       });
     }
@@ -621,5 +697,25 @@ function saveFile(data, id) {
       resolve(f);
     });
   });
+}
+/**
+ * Attach Signature to doc pages
+ *
+ * @param   {Object}  signatureFound  [signatureFound description]
+ * @param   {Any}  page            [page description]
+ *@param {any} data
+ @param {any} pngDims
+ * @return  {Any}                  [return description]
+ */
+function attachSignatureToPage(signatureFound, page, data, pngDims) {
+  for (const s of signatureFound.coordinates) {
+    page.drawImage(data, {
+      x: s.x_coordinate,
+      y: Number(page.getHeight()-s.y_coordinate-pngDims.height-10),
+      width: 50,
+      height: 50,
+    });
+  }
+  return page;
 }
 module.exports=DocumentController;

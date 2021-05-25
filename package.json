@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "An API service for document signing",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "cross-env ENVIRONMENT=test jest --testTimeout=50000 --runInBand --detectOpenHandles --coverage --forceExit"
+    "start": "node index.js --max-http-header-size=44384",
+    "dev": "nodemon index.js --max-http-header-size=44384",
+    "test": "DEBUG=nock.* cross-env ENVIRONMENT=test jest --testTimeout=50000 --runInBand --detectOpenHandles --coverage --forceExit"
   },
   "dependencies": {
     "@hapi/joi": "^17.1.1",

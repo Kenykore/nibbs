@@ -4,13 +4,14 @@ const UserDB = require('../../../../models/user');
 const Tokenization= require('../../../../utilities/tokeniztion');
 let nonVerifedUser=null;
 let verifedUser=null;
+let signatureAdded=null;
 const fs = require('fs');
 const nock=require('nock');
 let scope=null;
 const testData= require('./../../test_data/auth_data/admin_data');
 describe('Test the profile api', () => {
   beforeAll(async () => {
-    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
+    scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
       .get('/login/auth-only')
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
@@ -37,8 +38,12 @@ describe('Test the profile api', () => {
       'username': 'kenymvx2',
       'email': 'korede.moshood2@mvxchange.com',
       'signatures': [
-        'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
-        'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+        {
+          url: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png ',
+        },
+        {
+          url: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png '
+        }
       ],
       'role': 'user',
       'status': 'active',
@@ -94,7 +99,7 @@ describe('Test the profile api', () => {
       my_file: fs.createReadStream('./create.png')
     };
     await helper.post('/users/add/signature', {}, verifedUser.body._token).expect(400);
-    const signatureAdded= await helper.postFormData('/users/add/signature', formData.my_file, verifedUser.body._token).expect(200);
+    signatureAdded= await helper.postFormData('/users/add/signature', formData.my_file, verifedUser.body._token).expect(200);
     expect(signatureAdded.body.data).toBeTruthy();
     expect(signatureAdded.body.data.signatures.length).toBeGreaterThan(0);
   });
@@ -122,7 +127,7 @@ describe('Test the profile api', () => {
   });
   test('Registered user should successfully delete Signature', async () => {
     await helper.post('/users/remove/signature',
-      {signature: 'https://res.cloudinary.com/comestibles/image/upload/v1598179341/signatures/pr.youngworld2%40gmail.com/create.png.png'},
+      {signature: signatureAdded.body.data.signatures[0]._id},
       verifedUser.body._token).expect(200);
   });
 });

@@ -15,6 +15,7 @@ const config = require('./config/index');
 app.use(logger('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '3000mb'}));
 app.use(logger('dev'));
 app.use(methodOverride());
 app.use(fileUpload({
@@ -28,16 +29,17 @@ const allowedOrigins=[config.frontend_url];
 /* istanbul ignore next */
 app.use(cors({
   origin: function(origin, callback) {
+    console.log(origin, 'origin');
     // allow requests with no origin
     // (like mobile apps or curl requests)
     /* istanbul ignore next */
     if (!origin) return callback(null, true);
     /* istanbul ignore next */
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not ' +
-                'allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
+    // if (allowedOrigins.indexOf(origin) === -1) {
+    //   const msg = 'The CORS policy for this site does not ' +
+    //             'allow access from the specified Origin.';
+    //   return callback(new Error(msg), false);
+    // }
     /* istanbul ignore next */
     return callback(null, true);
   }
@@ -77,6 +79,7 @@ const mongoose= require('mongoose');
 const databaseConfig = require('./config/index.js');
 // configuration
 // 1. Database Connection
+console.log(databaseConfig.database_url,'db')
 mongoose.connect(databaseConfig.database_url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,

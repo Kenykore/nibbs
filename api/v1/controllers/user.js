@@ -173,12 +173,13 @@ class UserController {
           message: 'Invite Already completed'
         });
       }
-      const files=await saveSignature(req, user);
+      let files=await saveSignature(req, user);
 
       if (files.length===0) {
         /* istanbul ignore next */
         return response.sendError({res, message: 'Could not upload signature'});
       }
+      files=mapFiles(files);
       if (inviteFound) {
         const userFound= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
         if (userFound) {
@@ -217,12 +218,12 @@ class UserController {
         return response.sendError({res, message: 'No signatures were uploaded'});
       }
       const user=req.userDetails;
-      const userFound=await User.findById(user.userId);
-      const files=await saveSignature(req, user);
+      let files=await saveSignature(req, user);
       /* istanbul ignore next */
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
+      files=mapFiles(files);
       /* istanbul ignore next */
       await User.findByIdAndUpdate(user.userId, {$push: {
         signatures: {
@@ -430,7 +431,10 @@ class UserController {
       if (!req.body.signature) {
         return response.sendError({res, message: 'Signature is missing in request body'});
       }
-      const userUpdated=await User.findByIdAndUpdate(user.userId, {$pull: {signatures: req.body.signature}}, {new: true}).lean();
+      const userUpdated=await User.findByIdAndUpdate(user.userId, {
+        $pull: {
+          'signatures': {_id: req.body.signature},
+        }}, {new: true}).lean();
       if (userUpdated) {
         return response.sendSuccess({
           res,
@@ -687,6 +691,20 @@ async function uploadFile(f, userId) {
     /* istanbul ignore next */
     return false;
   }
+}
+/**
+ * Fuction to map signature for upload
+ *
+ * @param   {Array}  file  [file description]
+ *
+ * @return  {Array}        [return description]
+ */
+function mapFiles(file) {
+  return file.map((y)=>{
+    return {
+      url: y
+    };
+  });
 }
 /**
  * Save user signature to cloud

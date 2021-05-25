@@ -1,5 +1,4 @@
 node_modules
-.env
 tempdoc.pdf
 coverage
 check_ip.js
@@ -14,3 +13,4 @@ test.js
 .scannerwork/scanner-report/metadata.pb
 .Ds_Store
 .idea
+.env
