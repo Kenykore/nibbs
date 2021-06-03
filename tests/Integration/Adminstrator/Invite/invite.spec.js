@@ -30,8 +30,14 @@ describe('Test the user invite api', () => {
     utils.getFileUrl=jest.fn();
     utils.uploadFileMino.mockResolvedValue('cc83c3f2fb5db6561ef4945f6eee031c');
     utils.getFileUrl.mockResolvedValue(signature);
-    scope = nock(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`).persist()
-      .get('/login/auth-only')
+    const baseSplit=process.env.SINGLE_AUTH_SERVICE_LOGIN_URL.split('/');
+    const baseUrlArray=baseSplit.slice(baseSplit.length-2);
+    const mainUrl=baseSplit.slice(0, baseSplit.length-2);
+    const url=mainUrl.join('/');
+    const path=baseUrlArray.join('/');
+    console.log(url, 'url', path, 'path');
+    scope = nock(`${url}`).persist()
+      .get(`/${path}`)
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {
