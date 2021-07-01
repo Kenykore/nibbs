@@ -21,7 +21,6 @@ describe('Test the authentication api', () => {
     const mainUrl=baseSplit.slice(0, baseSplit.length-2);
     const url=mainUrl.join('/');
     const path=baseUrlArray.join('/');
-    console.log(url, 'url', path, 'path');
     scope = nock(`${url}`).persist()
       .get(`/${path}`)
       .reply(200, {
