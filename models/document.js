@@ -63,6 +63,8 @@ const documentModel= new mongoose.Schema({
     coordinates: [{
       x_coordinate: Number,
       y_coordinate: Number,
+      absolute_x_coordinate: Number,
+      absolute_y_coordinate: Number,
       page: String,
     }],
     signed: {
