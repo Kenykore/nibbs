@@ -104,6 +104,7 @@ class ReceipientController {
       if (tagAdded) {
         return response.sendSuccess({res, message: 'Tag added Successfully', body: {data: tagAdded}});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Unable to add tag'});
     } catch (error) {
       /* istanbul ignore next */
@@ -249,6 +250,7 @@ class ReceipientController {
           body: {data: recipients}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to find recipient,try again'
@@ -311,6 +313,7 @@ class ReceipientController {
           body: {recipient: recipientUpdated}
         });
       }
+      /* istanbul ignore next */
       return response.sendError({
         res,
         message: 'Unable to delete recipient,try again'
@@ -353,6 +356,7 @@ async function fetchRecipients(res, searchObject, skip, recipientsPerPage, curre
       };
       return response.sendSuccess({res, message: 'recipientss  found', body: responseContent});
     }
+    /* istanbul ignore next */
     return response.sendError({res, message: 'No Receipient found', statusCode: status.NOT_FOUND});
   } catch (error) {
     /* istanbul ignore next */

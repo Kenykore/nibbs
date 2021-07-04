@@ -1,23 +1,17 @@
+FROM node:14-alpine
 
-FROM heroku/heroku:18
-ADD ./.profile.d /app/.profile.d
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-FROM node:15
-# Create app directory
-WORKDIR /usr/src/nibbs-api-prod
+RUN mkdir -p /home/node/mail-merge/node_modules && chown -R node:node /home/node/mail-merge
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
+WORKDIR /home/node/mail-merge
+
 COPY package*.json ./
-COPY .env ./
+
+USER node
 
 RUN npm install
-# If you are building your code for production
-RUN npm ci --only=production
-# Bundle app source
-COPY . .
 
-EXPOSE $PORT
+COPY --chown=node:node . .
+
+EXPOSE 8080
+
 CMD [ "node", "index.js" ]
-

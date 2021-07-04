@@ -79,6 +79,7 @@ const mongoose= require('mongoose');
 const databaseConfig = require('./config/index.js');
 // configuration
 // 1. Database Connection
+console.log(databaseConfig.database_url,'db')
 mongoose.connect(databaseConfig.database_url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,

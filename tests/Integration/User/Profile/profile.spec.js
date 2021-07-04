@@ -11,8 +11,13 @@ let scope=null;
 const testData= require('./../../test_data/auth_data/admin_data');
 describe('Test the profile api', () => {
   beforeAll(async () => {
-    scope = nock('http://vi-singleauth-dev.nibsstest.com/singleauth').persist()
-      .get('/login/auth-only')
+    const baseSplit=process.env.SINGLE_AUTH_SERVICE_LOGIN_URL.split('/');
+    const baseUrlArray=baseSplit.slice(baseSplit.length-2);
+    const mainUrl=baseSplit.slice(0, baseSplit.length-2);
+    const url=mainUrl.join('/');
+    const path=baseUrlArray.join('/');
+    scope = nock(`${url}`).persist()
+      .get(`/${path}`)
       .reply(200, {
         meta: {status: 'okay', message: 'Login successful', info: 'success'},
         data: {

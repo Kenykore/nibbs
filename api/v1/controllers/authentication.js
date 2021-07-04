@@ -42,42 +42,21 @@ class AuthenticationController {
       const userName = email.split('@')[0];
       // // console.log('this is me here')
       /* istanbul ignore next */
-      // const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
+      const encodedData = Buffer.from(`${userName}:${password}`).toString('base64');
       // // // if he exists, then make a call to sso
       // /* istanbul ignore next */
-      // const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`, {
-      //   method: 'get',
-      //   headers: {Authorization: `Basic ${encodedData}`},
-      // });
-      // // /* istanbul ignore next */
-      // if (!getData.ok) {
-      //   /* istanbul ignore next */
-      //   return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
-      // }
+      const getData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_LOGIN_URL}`, {
+        method: 'get',
+        headers: {Authorization: `Basic ${encodedData}`},
+      });
+      // /* istanbul ignore next */
+      if (!getData.ok) {
+        /* istanbul ignore next */
+        return response.sendError({res, statusCode: '401', message: 'Invalid email or password'});
+      }
       // // if you need that user details
       /* istanbul ignore next */
-      // const userData = await getData.json();
-      const userData= {
-        meta: {status: 'okay', message: 'Login successful', info: 'success'},
-        data: {
-          dn: 'CN=Idris Kelani,OU=AzureSync,DC=nibsstest,DC=com',
-          cn: 'Idris Kelani',
-          sn: 'Kelani',
-          givenName: 'Idris',
-          displayName: 'Idris Kelani',
-          memberOf: [
-            'CN=ABC Team,OU=Groups,DC=nibsstest,DC=com',
-            'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
-            'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
-          ],
-          name: 'Idris Kelani',
-          sAMAccountName: 'ikelani',
-          userPrincipalName: 'ikelani@nibsstest.com',
-          lastLogonTimestamp: '132505361245464469',
-          mail: email
-        }
-      };
-
+      const userData = await getData.json();
       /* istanbul ignore next */
       return await authenciateUser(req, res, next, userData);
       // example login data is
@@ -107,6 +86,7 @@ class AuthenticationController {
     } catch (error) {
       /* istanbul ignore next */
       /* istanbul ignore next */
+      console.log(error);
       return next(error);
     }
   }
@@ -169,6 +149,7 @@ class AuthenticationController {
       if (roleDeleted) {
         return response.sendSuccess({res, message: 'Role deleted'});
       }
+      /* istanbul ignore next */
       return response.sendError({res, message: 'Role could not be deleted'});
     } catch (error) {
       return next(error);
@@ -197,6 +178,7 @@ async function authenciateUser(req, res, next, userData) {
         status: 'inactive'
       }
     };
+      /* istanbul ignore next */
     if (!userDetails.data) {
       return response.sendError({res, message: userData.meta.message});
     }
@@ -218,6 +200,7 @@ async function authenciateUser(req, res, next, userData) {
       body: {_token: accessToken, data: {...data.user, userCount: await User.countDocuments()}}
     });
   } catch (error) {
+    /* istanbul ignore next */
     console.log(error);
     return next(error);
   }

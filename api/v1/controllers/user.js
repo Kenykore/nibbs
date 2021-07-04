@@ -51,15 +51,15 @@ class UserController {
         /* istanbul ignore next */
 
         /* istanbul ignore next */
-        // const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${d.email}`, {
-        //   method: 'post',
-        // });
-        // //   /* istanbul ignore next */
-        // if (!getUserData.ok) {
-        //   // 'do what you want to do here if the user does not exist
+        const getUserData = await fetch(`${process.env.SINGLE_AUTH_SERVICE_BASE_URL}/search?staffEmail=${d.email}`, {
+          method: 'post',
+        });
         //   /* istanbul ignore next */
-        //   continue;
-        // }
+        if (!getUserData.ok) {
+          // 'do what you want to do here if the user does not exist
+          /* istanbul ignore next */
+          continue;
+        }
 
         // search for the user in the sso and do what you like if found
 
@@ -179,11 +179,7 @@ class UserController {
         /* istanbul ignore next */
         return response.sendError({res, message: 'Could not upload signature'});
       }
-      files=files.map((y)=>{
-        return {
-          url: y
-        };
-      });
+      files=mapFiles(files);
       if (inviteFound) {
         const userFound= await User.findOneAndUpdate({email: user.email}, {signatures: files, status: 'active'}, {new: true});
         if (userFound) {
@@ -222,17 +218,12 @@ class UserController {
         return response.sendError({res, message: 'No signatures were uploaded'});
       }
       const user=req.userDetails;
-      const userFound=await User.findById(user.userId);
       let files=await saveSignature(req, user);
       /* istanbul ignore next */
       if (files.length===0) {
         return response.sendError({res, message: 'Could not upload signature'});
       }
-      files=files.map((y)=>{
-        return {
-          url: y
-        };
-      });
+      files=mapFiles(files);
       /* istanbul ignore next */
       await User.findByIdAndUpdate(user.userId, {$push: {
         signatures: {
@@ -700,6 +691,20 @@ async function uploadFile(f, userId) {
     /* istanbul ignore next */
     return false;
   }
+}
+/**
+ * Fuction to map signature for upload
+ *
+ * @param   {Array}  file  [file description]
+ *
+ * @return  {Array}        [return description]
+ */
+function mapFiles(file) {
+  return file.map((y)=>{
+    return {
+      url: y
+    };
+  });
 }
 /**
  * Save user signature to cloud
