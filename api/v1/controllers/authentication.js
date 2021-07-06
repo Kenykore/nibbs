@@ -69,9 +69,9 @@ class AuthenticationController {
             'CN=Devops Team,OU=Groups,DC=nibsstest,DC=com',
             'CN=All Staff,OU=Groups,DC=nibsstest,DC=com'
           ],
-          name: username,
+          name: userName,
           sAMAccountName: 'ikelani',
-          userPrincipalName: username,
+          userPrincipalName: userName,
           lastLogonTimestamp: '132505361245464469',
           mail: email
         }
