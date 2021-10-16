@@ -5,9 +5,6 @@ This project seeks to accommodate the build of a mail merge and electronic signa
 To start the server simply clone,npm i and run npm start.
 Dont forget to add the .env file , a sample .env.example file has been added listing the require environment variable.
 
-For test deployment purposes the following env variables can be used
-CLOUDINARY_URL=cloudinary://348696352296524:LbG6yI_VFlSGOtN9mn_IOdmepYc@comestibles
-DEV_DB_URL=mongodb+srv://kenykore:boluwatife@cluster0-5qrlk.mongodb.net/nibbsdev?retryWrites=true&w=majority
 
 ### More information on environment variables
 $ ENVIRONMENT= current environment either development, staging or production
